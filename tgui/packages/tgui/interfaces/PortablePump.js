@@ -6,13 +6,16 @@ import { PortableBasicInfo } from './common/PortableAtmos';
 export const PortablePump = (props, context) => {
   const { act, data } = useBackend(context);
   const {
-    direction,
+    into_pump_or_port,
+    connected,
     holding,
     target_pressure,
     default_pressure,
     min_pressure,
     max_pressure,
   } = data;
+  const pump_or_port = connected ? "Port" : "Pump";
+  const area_or_tank = holding ? "Tank" : "Area";
   return (
     <Window
       width={300}
@@ -20,12 +23,15 @@ export const PortablePump = (props, context) => {
       <Window.Content>
         <PortableBasicInfo />
         <Section
-          title="Pump"
+          title="Pumping"
           buttons={(
             <Button
-              icon={direction ? 'sign-in-alt' : 'sign-out-alt'}
-              content={direction ? 'In' : 'Out'}
-              selected={direction}
+              content={
+                into_pump_or_port
+                  ? area_or_tank + ' → ' + pump_or_port
+                  : pump_or_port + ' → ' + area_or_tank
+              }
+              color={!into_pump_or_port && !holding ? 'caution' : null}
               onClick={() => act('direction')} />
           )}>
           <LabeledList>
