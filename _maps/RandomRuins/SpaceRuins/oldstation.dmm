@@ -2084,7 +2084,7 @@
 /turf/open/floor/plating,
 /area/ruin/space/ancientstation/beta/hall)
 "gA" = (
-/obj/effect/spawner/structure/window/hollow/reinforced,
+/obj/effect/spawner/structure/window/reinforced,
 /obj/machinery/door/poddoor{
 	id = "ancient"
 	},
@@ -6581,6 +6581,7 @@
 	req_access = list("away_science")
 	},
 /obj/item/relic,
+/obj/item/transfer_valve,
 /obj/item/transfer_valve,
 /obj/item/raw_anomaly_core/bluespace,
 /obj/item/raw_anomaly_core/random,
@@ -13357,7 +13358,7 @@ eJ
 hM
 ib
 bX
-hi
+aT
 hi
 hi
 aT
@@ -14281,7 +14282,7 @@ bE
 cb
 EF
 cb
-Gz
+bE
 aa
 aa
 aa
