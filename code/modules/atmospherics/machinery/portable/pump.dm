@@ -84,7 +84,7 @@
 		if(on)
 			SSair.start_processing_machine(src)
 	if(prob(100 / severity))
-		into_pump_or_port = FALSE
+		direction = PUMP_OUT
 	target_pressure = rand(0, 100 * ONE_ATMOSPHERE)
 	update_appearance()
 
@@ -96,7 +96,7 @@
 		if(on)
 			on = FALSE
 			update_appearance()
-	else if(on && holding && !into_pump_or_port)
+	else if(on && holding && direction == PUMP_OUT)
 		investigate_log("[key_name(user)] started a transfer into [holding].", INVESTIGATE_ATMOS)
 
 /obj/machinery/portable_atmospherics/pump/ui_interact(mob/user, datum/tgui/ui)
@@ -140,16 +140,16 @@
 				if(n2o || plasma)
 					message_admins("[ADMIN_LOOKUPFLW(usr)] turned on a pump that contains [n2o ? "N2O" : ""][n2o && plasma ? " & " : ""][plasma ? "Plasma" : ""] at [ADMIN_VERBOSEJMP(src)]")
 					log_admin("[key_name(usr)] turned on a pump that contains [n2o ? "N2O" : ""][n2o && plasma ? " & " : ""][plasma ? "Plasma" : ""] at [AREACOORD(src)]")
-			else if(on && !into_pump_or_port)
+			else if(on && direction == PUMP_OUT)
 				investigate_log("[key_name(usr)] started a transfer into [holding].", INVESTIGATE_ATMOS)
 			. = TRUE
 		if("direction")
-			if(!into_pump_or_port)
-				into_pump_or_port = TRUE
+			if(direction == PUMP_OUT)
+				direction = PUMP_IN
 			else
 				if(on && holding)
 					investigate_log("[key_name(usr)] started a transfer into [holding].", INVESTIGATE_ATMOS)
-				into_pump_or_port = FALSE
+				direction = PUMP_OUT
 			. = TRUE
 		if("pressure")
 			var/pressure = params["pressure"]
