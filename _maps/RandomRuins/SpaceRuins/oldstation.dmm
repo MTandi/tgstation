@@ -1,11 +1,11 @@
 //MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE
 "aa" = (
-/turf/template_noop,
-/area/template_noop)
+/turf/open/space,
+/area/space)
 "ab" = (
 /mob/living/simple_animal/hostile/carp,
-/turf/template_noop,
-/area/template_noop)
+/turf/open/space,
+/area/space)
 "ad" = (
 /turf/closed/wall/r_wall,
 /area/ruin/space/ancientstation/delta/ai)
@@ -1081,8 +1081,8 @@
 /area/ruin/space/ancientstation/beta/medbay)
 "dF" = (
 /obj/structure/lattice,
-/turf/template_noop,
-/area/template_noop)
+/turf/open/space,
+/area/space)
 "dG" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
@@ -1092,7 +1092,7 @@
 /area/ruin/space/ancientstation/delta/hall)
 "dH" = (
 /obj/structure/lattice/catwalk,
-/turf/template_noop,
+/turf/open/space,
 /area/ruin/solars/ancientstation/charlie/solars)
 "dL" = (
 /obj/effect/decal/cleanable/dirt,
@@ -2390,7 +2390,7 @@
 "hN" = (
 /obj/item/stack/rods,
 /obj/structure/lattice,
-/turf/template_noop,
+/turf/open/space,
 /area/space/nearstation)
 "hO" = (
 /obj/effect/decal/cleanable/dirt,
@@ -3895,7 +3895,7 @@
 "my" = (
 /obj/structure/lattice/catwalk,
 /obj/structure/cable,
-/turf/template_noop,
+/turf/open/space,
 /area/ruin/solars/ancientstation/charlie/solars)
 "mz" = (
 /obj/effect/decal/cleanable/dirt,
@@ -4229,8 +4229,8 @@
 /area/ruin/space/ancientstation/beta/hall)
 "nr" = (
 /obj/item/stack/rods,
-/turf/template_noop,
-/area/template_noop)
+/turf/open/space,
+/area/space)
 "ns" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/machinery/light/small/directional/south,
@@ -6035,7 +6035,7 @@
 	dir = 10
 	},
 /obj/structure/cable,
-/turf/template_noop,
+/turf/open/space,
 /area/space/nearstation)
 "Au" = (
 /obj/effect/decal/cleanable/dirt,
@@ -6208,7 +6208,7 @@
 	dir = 10
 	},
 /obj/structure/cable,
-/turf/template_noop,
+/turf/open/space,
 /area/space/nearstation)
 "BH" = (
 /obj/item/solar_assembly,
@@ -6682,7 +6682,7 @@
 	dir = 10
 	},
 /obj/structure/cable,
-/turf/template_noop,
+/turf/open/space,
 /area/space/nearstation)
 "FP" = (
 /obj/item/shard/plasma{
@@ -6928,7 +6928,7 @@
 	dir = 10
 	},
 /obj/structure/cable,
-/turf/template_noop,
+/turf/open/space,
 /area/space/nearstation)
 "HN" = (
 /obj/effect/turf_decal/tile/purple/half/contrasted{
@@ -6959,7 +6959,7 @@
 	dir = 4
 	},
 /obj/machinery/duct,
-/turf/template_noop,
+/turf/open/space,
 /area/space/nearstation)
 "HT" = (
 /obj/effect/turf_decal/tile/purple/half/contrasted{
@@ -7083,7 +7083,7 @@
 	anchored = 0
 	},
 /obj/structure/lattice,
-/turf/template_noop,
+/turf/open/space,
 /area/space/nearstation)
 "Jf" = (
 /obj/effect/decal/cleanable/glass,
@@ -7091,7 +7091,7 @@
 /area/ruin/space/ancientstation/beta/supermatter)
 "Jg" = (
 /obj/structure/lattice,
-/turf/template_noop,
+/turf/open/space,
 /area/space/nearstation)
 "Jo" = (
 /obj/effect/turf_decal/stripes/line{
@@ -7128,7 +7128,7 @@
 /obj/structure/lattice/catwalk,
 /obj/machinery/power/rtg/old_station,
 /obj/structure/cable,
-/turf/template_noop,
+/turf/open/space,
 /area/ruin/solars/ancientstation/charlie/solars)
 "JC" = (
 /obj/structure/table/glass,
@@ -8023,7 +8023,7 @@
 	dir = 8
 	},
 /obj/structure/lattice,
-/turf/template_noop,
+/turf/open/space,
 /area/space/nearstation)
 "QD" = (
 /obj/machinery/computer/old{
@@ -8615,7 +8615,7 @@
 /area/ruin/space/ancientstation/delta/hall)
 "Wm" = (
 /obj/structure/lattice/catwalk,
-/turf/template_noop,
+/turf/open/space,
 /area/space/nearstation)
 "Wn" = (
 /obj/effect/decal/cleanable/dirt,
@@ -8847,7 +8847,7 @@
 	dir = 4
 	},
 /obj/machinery/duct,
-/turf/template_noop,
+/turf/open/space,
 /area/space/nearstation)
 "Yy" = (
 /obj/effect/decal/cleanable/dirt,
@@ -8867,7 +8867,7 @@
 "YH" = (
 /obj/structure/lattice,
 /obj/item/stack/rods,
-/turf/template_noop,
+/turf/open/space,
 /area/space/nearstation)
 "YJ" = (
 /obj/machinery/atmospherics/components/unary/vent_scrubber/on/layer2{
@@ -8956,7 +8956,7 @@
 	anchored = 0
 	},
 /obj/structure/lattice,
-/turf/template_noop,
+/turf/open/space,
 /area/space/nearstation)
 
 (1,1,1) = {"
