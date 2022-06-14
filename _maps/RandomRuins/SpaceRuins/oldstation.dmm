@@ -2161,7 +2161,7 @@
 	dir = 4
 	},
 /turf/open/floor/plating/airless,
-/area/ruin/space/ancientstation/beta/hall)
+/area/space/nearstation)
 "gP" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/table,
@@ -4413,7 +4413,7 @@
 /turf/open/floor/plating/airless{
 	icon_state = "platingdmg1"
 	},
-/area/ruin/space/ancientstation/beta/hall)
+/area/space/nearstation)
 "nS" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
@@ -8355,9 +8355,6 @@
 	},
 /turf/open/floor/iron/white/textured_edge,
 /area/ruin/space/ancientstation/delta/biolab)
-"Td" = (
-/turf/closed/mineral/random,
-/area/ruin/space/ancientstation/beta/hall)
 "Ti" = (
 /obj/effect/turf_decal/tile/purple/half/contrasted{
 	dir = 8
@@ -8481,7 +8478,7 @@
 "Uj" = (
 /obj/structure/girder,
 /turf/closed/mineral/random,
-/area/ruin/space/ancientstation/beta/hall)
+/area/space/nearstation)
 "Ul" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
@@ -10189,11 +10186,11 @@ UP
 UP
 aa
 ab
+bJ
 mH
 mH
 mH
-mH
-mH
+bJ
 ab
 bJ
 mH
@@ -10236,7 +10233,7 @@ aa
 ab
 UP
 UP
-Td
+UP
 aa
 dF
 AK
@@ -10368,7 +10365,7 @@ sA
 UP
 UP
 OX
-jE
+kQ
 bH
 hJ
 AK
@@ -10725,7 +10722,7 @@ Lh
 Gi
 pv
 Ze
-mH
+bJ
 nr
 aa
 UP
@@ -10755,12 +10752,12 @@ aa
 aa
 aa
 UP
-XY
+sA
 UI
 wa
 sA
 sA
-XY
+sA
 UP
 UP
 UP
@@ -10791,7 +10788,7 @@ LP
 qF
 LP
 LP
-mH
+bJ
 aa
 aa
 aa
@@ -12303,8 +12300,8 @@ Ox
 mC
 nJ
 Ox
-hi
-hi
+aT
+aT
 aT
 aT
 aa
@@ -12574,7 +12571,7 @@ kN
 kD
 mz
 nk
-aG
+nk
 aa
 Uu
 UP
@@ -13102,7 +13099,7 @@ jB
 pV
 jP
 aG
-aG
+nk
 aa
 aa
 aa
@@ -13167,7 +13164,7 @@ nk
 aG
 nk
 nk
-aG
+nk
 aa
 aa
 aa
