@@ -2161,7 +2161,7 @@
 	dir = 4
 	},
 /turf/open/floor/plating/airless,
-/area/space/nearstation)
+/area/ruin/space/ancientstation/beta/hall)
 "gP" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/table,
@@ -4413,7 +4413,7 @@
 /turf/open/floor/plating/airless{
 	icon_state = "platingdmg1"
 	},
-/area/space/nearstation)
+/area/ruin/space/ancientstation/beta/hall)
 "nS" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
@@ -8478,7 +8478,7 @@
 "Uj" = (
 /obj/structure/girder,
 /turf/closed/mineral/random,
-/area/space/nearstation)
+/area/ruin/space/ancientstation/beta/hall)
 "Ul" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
@@ -14068,7 +14068,7 @@ sg
 bE
 bE
 zL
-UP
+zL
 bE
 bE
 Cp
