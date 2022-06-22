@@ -27,7 +27,7 @@
 
 /// Trim for the oldstation ruin/Charlie station to access APCs and other equipment
 /datum/id_trim/away/old/apc
-	access = list(ACCESS_ENGINEERING, ACCESS_ENGINE_EQUIP)
+	access = list(ACCESS_ENGINEERING, ACCESS_ENGINE_EQUIP, ACCESS_MINERAL_STOREROOM)
 	assignment = "Engineering Equipment Access"
 
 /// Trim for the oldstation ruin/Charlie station to access robots, and downloading of paper publishing software for experiments
