@@ -21,7 +21,7 @@ GLOBAL_LIST_INIT(heretic_start_knowledge, initialize_starting_knowledge())
 	desc = "Starts your journey into the Mansus. \
 		Grants you the Mansus Grasp, a powerful and upgradable \
 		disabling spell that can be cast regardless of having a focus."
-	spell_to_add = /obj/effect/proc_holder/spell/targeted/touch/mansus_grasp
+	spell_to_add = /datum/action/cooldown/spell/touch/mansus_grasp
 	cost = 0
 	route = PATH_START
 
@@ -160,10 +160,15 @@ GLOBAL_LIST_INIT(heretic_start_knowledge, initialize_starting_knowledge())
 	if(!our_new_heart)
 		CRASH("[type] somehow made it to on_finished_recipe without a heart. What?")
 
-	// Don't delete our shiny new heart
-	if(our_new_heart in selected_atoms)
-		selected_atoms -= our_new_heart
+	// Snowflakey, but if the user used a heart that wasn't beating
+	// they'll immediately collapse into a heart attack. Funny but not ideal.
+	if(iscarbon(user))
+		var/mob/living/carbon/carbon_user = user
+		carbon_user.set_heartattack(FALSE)
 
+	// Don't delete our shiny new heart
+	selected_atoms -= our_new_heart
+	// Make it the living heart
 	our_new_heart.AddComponent(/datum/component/living_heart)
 	to_chat(user, span_warning("You feel your [our_new_heart.name] begin pulse faster and faster as it awakens!"))
 	playsound(user, 'sound/magic/demon_consume.ogg', 50, TRUE)

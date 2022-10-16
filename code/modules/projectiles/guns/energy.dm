@@ -2,7 +2,7 @@
 	icon_state = "energy"
 	name = "energy gun"
 	desc = "A basic energy-based gun."
-	icon = 'icons/obj/guns/energy.dmi'
+	icon = 'icons/obj/weapons/guns/energy.dmi'
 
 	/// What type of power cell this uses
 	var/obj/item/stock_parts/cell/cell
@@ -33,6 +33,26 @@
 	var/use_cyborg_cell = FALSE
 	///set to true so the gun is given an empty cell
 	var/dead_cell = FALSE
+
+/obj/item/gun/energy/fire_sounds()
+	// What frequency the energy gun's sound will make
+	var/frequency_to_use
+
+	var/obj/item/ammo_casing/energy/shot = ammo_type[select]
+	// What percentage of the full battery a shot will expend
+	var/shot_cost_percent = round(clamp(shot.e_cost / cell.maxcharge, 0, 1) * 100)
+	// Ignore this on oversized/infinite cells or ammo without cost
+	if(shot_cost_percent > 0)
+		// The total amount of shots the fully charged energy gun can fire before running out
+		var/max_shots = round(100/shot_cost_percent)
+		// How many shots left before the energy gun's current battery runs out of energy
+		var/shots_left = round((round(clamp(cell.charge / cell.maxcharge, 0, 1) * 100))/shot_cost_percent)
+		frequency_to_use = sin((90/max_shots) * shots_left)
+
+	if(suppressed)
+		playsound(src, suppressed_sound, suppressed_volume, vary_fire_sound, ignore_walls = FALSE, extrarange = SILENCED_SOUND_EXTRARANGE, falloff_distance = 0, frequency = frequency_to_use)
+	else
+		playsound(src, fire_sound, fire_sound_volume, vary_fire_sound, frequency = frequency_to_use)
 
 /obj/item/gun/energy/emp_act(severity)
 	. = ..()
