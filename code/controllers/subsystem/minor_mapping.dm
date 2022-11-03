@@ -10,7 +10,7 @@ SUBSYSTEM_DEF(minor_mapping)
 	return SS_INIT_NO_NEED
 	#endif // the mice are easily the bigger problem, but let's just avoid anything that could cause some bullshit.
 	trigger_migration(CONFIG_GET(number/mice_roundstart))
-	place_satchels()
+	//place_satchels()
 	return SS_INIT_SUCCESS
 
 /datum/controller/subsystem/minor_mapping/proc/trigger_migration(num_mice=10)
