@@ -8758,9 +8758,6 @@
 /obj/machinery/atmospherics/pipe/smart/manifold4w/general,
 /turf/open/floor/iron,
 /area/ruin/space/ancientstation/charlie/hall)
-"Yb" = (
-/obj/effect/spawner/structure/window/reinforced,
-/area/ruin/space/ancientstation/delta/hall)
 "Ye" = (
 /obj/item/stack/rods,
 /turf/open/space,
@@ -14320,7 +14317,7 @@ nF
 nF
 nF
 nF
-Yb
+He
 FR
 cA
 dw
@@ -14339,7 +14336,7 @@ dw
 cD
 jr
 od
-Yb
+He
 nF
 nF
 nF
@@ -14386,7 +14383,7 @@ nF
 nF
 nF
 nF
-Yb
+He
 Au
 Oo
 dx
@@ -14405,7 +14402,7 @@ RL
 JT
 iZ
 cD
-Yb
+He
 nF
 nF
 nF
@@ -15244,7 +15241,7 @@ ai
 ad
 RZ
 nF
-Yb
+He
 En
 Qz
 NY
@@ -15263,7 +15260,7 @@ QR
 nX
 Qx
 cD
-Yb
+He
 nF
 nF
 nF
@@ -15310,7 +15307,7 @@ dB
 ad
 RZ
 nF
-Yb
+He
 ou
 En
 jx
@@ -15329,7 +15326,7 @@ nW
 nY
 Yh
 od
-Yb
+He
 nF
 nF
 nF
