@@ -866,8 +866,7 @@
 /turf/open/floor/iron/dark,
 /area/ruin/space/ancientstation/delta/ai)
 "df" = (
-/obj/effect/spawner/structure/window/reinforced,
-/turf/open/floor/plating,
+/turf/closed/wall,
 /area/ruin/space/ancientstation/delta/ai)
 "dh" = (
 /obj/effect/decal/cleanable/dirt,
@@ -7976,10 +7975,6 @@
 /obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
 /turf/open/floor/iron,
 /area/ruin/space/ancientstation/charlie/engie)
-"Ri" = (
-/obj/effect/spawner/structure/window/reinforced/damaged,
-/turf/open/floor/plating,
-/area/ruin/space/ancientstation/delta/ai)
 "Ro" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/turf_decal/tile/blue{
@@ -14204,7 +14199,7 @@ Gz
 lB
 jr
 GH
-bE
+Gz
 nF
 nF
 nF
@@ -14317,7 +14312,7 @@ nF
 nF
 nF
 nF
-He
+bE
 FR
 cA
 dw
@@ -14336,7 +14331,7 @@ dw
 cD
 jr
 od
-He
+Gz
 nF
 nF
 nF
@@ -14383,7 +14378,7 @@ nF
 nF
 nF
 nF
-He
+bE
 Au
 Oo
 dx
@@ -14402,7 +14397,7 @@ RL
 JT
 iZ
 cD
-He
+bE
 nF
 nF
 nF
@@ -14515,7 +14510,7 @@ ad
 nF
 RZ
 nF
-bE
+Gz
 cD
 Ao
 wx
@@ -14581,7 +14576,7 @@ ad
 ad
 RZ
 RZ
-bE
+Gz
 dG
 Ao
 wx
@@ -14647,7 +14642,7 @@ Lz
 ad
 RZ
 RZ
-bE
+Gz
 cD
 ov
 wx
@@ -14711,7 +14706,7 @@ ad
 ad
 ad
 ad
-Ri
+df
 df
 bE
 cD
@@ -15175,7 +15170,7 @@ ai
 ad
 RZ
 nF
-bE
+Gz
 dV
 us
 bD
@@ -15241,7 +15236,7 @@ ai
 ad
 RZ
 nF
-He
+Gz
 En
 Qz
 NY
@@ -15260,7 +15255,7 @@ QR
 nX
 Qx
 cD
-He
+bE
 nF
 nF
 nF
@@ -15307,7 +15302,7 @@ dB
 ad
 RZ
 nF
-He
+Gz
 ou
 En
 jx
@@ -15326,7 +15321,7 @@ nW
 nY
 Yh
 od
-He
+Gz
 nF
 nF
 nF
