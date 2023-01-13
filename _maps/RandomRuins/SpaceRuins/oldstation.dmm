@@ -4929,7 +4929,7 @@
 /turf/open/floor/iron,
 /area/ruin/space/ancientstation/charlie/engie)
 "sz" = (
-/mob/living/simple_animal/hostile/carp,
+/mob/living/basic/carp,
 /turf/open/space,
 /area/space)
 "sA" = (
