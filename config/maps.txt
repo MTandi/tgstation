@@ -17,6 +17,11 @@ map oldstation
 	#default
 endmap
 
+map birdshot
+	maxplayers 66
+	votable
+endmap
+
 map metastation
 	minplayers 25
 	#voteweight 0.5
@@ -25,10 +30,6 @@ endmap
 
 map deltastation
 	minplayers 50
-	votable
-endmap
-
-map kilostation
 	votable
 endmap
 
