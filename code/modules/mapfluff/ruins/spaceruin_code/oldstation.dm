@@ -14,11 +14,11 @@
 	default_raw_text = "<h2>WARNING</h2> \
 		<ul> \
 		<li>Shields down. Space Carp invasion imminent.</li> \
-		<li>Unknown force overtaken AI satellite and occupying Delta Station. Intent unknown. Species unknown. Numbers unknown.</li> \
+		<li>Unknown force has overtaken AI satellite and occupying Delta Station. Intent unknown. Species unknown. Numbers unknown.</li> \
 		</ul> \
 		<h2>Status</h2> \
 		<ol> \
-		<li><b>Alpha Station</b> - Destroyed</li> \
+		<li><b>Alpha Station</b> - Destroyed.</li> \
 		<li><b>Beta Station</b> - Catastrophic Damage. Medical, destroyed. Atmospherics and Engine Core, partially destroyed.</li> \
 		<li><b>Charlie Station</b> - Multiple asteroid impacts, no loss in air pressure.</li> \
 		<li><b>Delta Station</b> - Intact.</li> \
