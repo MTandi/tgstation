@@ -3,7 +3,5 @@
 	"map_name": "Old Station",
 	"map_path": "RandomRuins/SpaceRuins",
 	"map_file": "oldstation.dmm",
-	"space_ruin_levels": 0,
-	"space_empty_levels": 1,
-	"minetype": "none"
+	"minetype": "lavaland_empty"
 }

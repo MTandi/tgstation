@@ -1461,6 +1461,15 @@
 /obj/structure/cable,
 /turf/open/floor/iron,
 /area/ruin/space/ancientstation/charlie/sec)
+"gC" = (
+/obj/structure/window/reinforced/spawner/directional/west,
+/obj/structure/window/reinforced/spawner/directional/north,
+/obj/structure/window/reinforced/spawner/directional/south,
+/obj/structure/table,
+/obj/machinery/door/window/brigdoor/right/directional/east,
+/obj/item/circuitboard/computer/mining_shuttle,
+/turf/open/floor/iron/dark,
+/area/ruin/space/ancientstation/delta/ai)
 "gD" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/machinery/firealarm/directional/east,
@@ -2831,6 +2840,17 @@
 /obj/effect/decal/cleanable/blood/tracks,
 /turf/open/floor/iron/dark,
 /area/ruin/space/ancientstation/delta/ai)
+"ma" = (
+/obj/docking_port/stationary{
+	dir = 2;
+	dwidth = 3;
+	height = 10;
+	name = "lavaland mine";
+	shuttle_id = "mining_away";
+	width = 7
+	},
+/turf/closed/wall,
+/area/ruin/space/ancientstation/beta/gravity)
 "mb" = (
 /obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2,
 /obj/machinery/atmospherics/pipe/smart/manifold4w/supply/hidden/layer4,
@@ -6175,6 +6195,10 @@
 /obj/structure/cable,
 /turf/open/floor/iron/white,
 /area/ruin/space/ancientstation/delta/rnd)
+"II" = (
+/obj/docking_port/stationary/mining_home,
+/turf/template_noop,
+/area/template_noop)
 "IL" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/machinery/light/directional/south,
@@ -6877,6 +6901,17 @@
 /obj/structure/girder/displaced,
 /turf/open/floor/plating/airless,
 /area/ruin/space/ancientstation/beta/supermatter)
+"MI" = (
+/obj/docking_port/stationary{
+	dir = 2;
+	dwidth = 3;
+	height = 10;
+	name = "lavaland mine";
+	shuttle_id = "mining_away";
+	width = 7
+	},
+/turf/template_noop,
+/area/template_noop)
 "MJ" = (
 /obj/structure/alien/weeds,
 /obj/structure/cable,
@@ -7571,7 +7606,7 @@
 	},
 /obj/machinery/computer/atmos_control{
 	dir = 4;
-	atmos_chambers = list("beta-o2"="Beta Oxygen Supply","beta-n2"="Beta Nitrogen Supply")
+	atmos_chambers = list("beta-o2"="Beta  Oxygen  Supply","beta-n2"="Beta  Nitrogen  Supply")
 	},
 /turf/open/floor/iron,
 /area/ruin/space/ancientstation/beta/atmos)
@@ -10106,8 +10141,8 @@ aa
 aa
 aa
 aa
-aa
-sA
+MI
+ma
 sA
 XY
 XY
@@ -11229,7 +11264,7 @@ aa
 aa
 aa
 aa
-aa
+II
 VU
 Us
 Us
@@ -14335,7 +14370,7 @@ aM
 NS
 bh
 cz
-cz
+gC
 cz
 ad
 ad
