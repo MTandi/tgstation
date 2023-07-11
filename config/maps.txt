@@ -22,12 +22,6 @@ map birdshot
 	votable
 endmap
 
-map metastation
-	minplayers 25
-	#voteweight 0.5
-	votable
-endmap
-
 map deltastation
 	minplayers 50
 	votable
@@ -38,8 +32,9 @@ map icebox
 	votable
 endmap
 
-map tramstation
-	minplayers 35
+map metastation
+	minplayers 25
+	#voteweight 0.5
 	votable
 endmap
 
@@ -48,9 +43,18 @@ map northstar
 	votable
 endmap
 
+map tramstation
+	minplayers 35
+	votable
+endmap
 
-map runtimestation
+# Debug-only maps.
+
+map gateway_test
 endmap
 
 map multiz_debug
+endmap
+
+map runtimestation
 endmap

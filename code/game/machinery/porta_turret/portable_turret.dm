@@ -183,7 +183,7 @@ DEFINE_BITFIELD(turret_flags, list(
 		turret_gun.forceMove(src)
 		stored_gun = turret_gun
 
-	RegisterSignal(stored_gun, COMSIG_PARENT_QDELETING, PROC_REF(null_gun))
+	RegisterSignal(stored_gun, COMSIG_QDELETING, PROC_REF(null_gun))
 	var/list/gun_properties = stored_gun.get_turret_properties()
 
 	//required properties
@@ -784,6 +784,14 @@ DEFINE_BITFIELD(turret_flags, list(
 	max_integrity = 40
 	stun_projectile = /obj/projectile/bullet/syndicate_turret
 	lethal_projectile = /obj/projectile/bullet/syndicate_turret
+
+/obj/machinery/porta_turret/syndicate/irs
+	lethal_projectile = /obj/projectile/bullet/c10mm/ap
+	lethal_projectile_sound = 'sound/weapons/gun/smg/shot.ogg'
+	stun_projectile = /obj/projectile/bullet/c10mm/ap
+	stun_projectile_sound = 'sound/weapons/gun/smg/shot.ogg'
+	armor_type = /datum/armor/syndicate_turret
+	faction = list(FACTION_PIRATE)
 
 /obj/machinery/porta_turret/syndicate/shuttle
 	scan_range = 9
