@@ -5078,17 +5078,6 @@
 /obj/effect/decal/cleanable/dirt,
 /turf/open/floor/iron,
 /area/ruin/space/ancientstation/beta/mining)
-"Ba" = (
-/obj/docking_port/stationary{
-	dir = 2;
-	dwidth = 3;
-	height = 10;
-	name = "lavaland mine";
-	shuttle_id = "mining_away";
-	width = 7
-	},
-/turf/closed/wall,
-/area/ruin/space/ancientstation/beta/gravity)
 "Bb" = (
 /obj/machinery/door/airlock/highsecurity,
 /obj/structure/alien/weeds,
@@ -6555,17 +6544,6 @@
 /obj/effect/spawner/structure/window/reinforced,
 /turf/open/floor/plating,
 /area/ruin/space/ancientstation/charlie/sec)
-"KU" = (
-/obj/docking_port/stationary{
-	dir = 2;
-	dwidth = 3;
-	height = 10;
-	name = "lavaland mine";
-	shuttle_id = "mining_away";
-	width = 7
-	},
-/turf/template_noop,
-/area/template_noop)
 "KV" = (
 /obj/machinery/firealarm/directional/south,
 /obj/machinery/light_switch/directional/west,
@@ -7439,7 +7417,7 @@
 	},
 /obj/machinery/computer/atmos_control{
 	dir = 4;
-	atmos_chambers = list("beta-o2"="Beta  Oxygen  Supply","beta-n2"="Beta  Nitrogen  Supply")
+	atmos_chambers = list("beta-o2"="Beta    Oxygen    Supply","beta-n2"="Beta    Nitrogen    Supply")
 	},
 /turf/open/floor/iron,
 /area/ruin/space/ancientstation/beta/atmos)
@@ -10058,8 +10036,8 @@ aa
 aa
 aa
 aa
-KU
-Ba
+aa
+sA
 sA
 XY
 XY
