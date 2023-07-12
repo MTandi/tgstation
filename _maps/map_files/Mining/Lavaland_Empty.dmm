@@ -69,7 +69,7 @@
 	dir = 4;
 	dwidth = 3;
 	height = 7;
-	name = "Mining base public dock";
+	name = "Lavaland";
 	shuttle_id = "lavaland_common_away";
 	width = 7
 	},
