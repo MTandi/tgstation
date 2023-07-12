@@ -64,6 +64,17 @@
 	},
 /turf/open/misc/asteroid/basalt/lava_land_surface,
 /area/lavaland/surface/outdoors)
+"fH" = (
+/obj/docking_port/stationary{
+	dir = 4;
+	dwidth = 3;
+	height = 7;
+	name = "Mining base public dock";
+	shuttle_id = "lavaland_common_away";
+	width = 7
+	},
+/turf/open/misc/asteroid/basalt/lava_land_surface,
+/area/lavaland/surface/outdoors)
 "fQ" = (
 /turf/open/genturf,
 /area/lavaland/surface/outdoors/unexplored/danger)
@@ -615,17 +626,6 @@
 	dir = 1
 	},
 /turf/open/indestructible/boss,
-/area/lavaland/surface/outdoors)
-"nv" = (
-/obj/docking_port/stationary{
-	dir = 2;
-	dwidth = 3;
-	height = 10;
-	name = "lavaland mine";
-	shuttle_id = "mining_away";
-	width = 7
-	},
-/turf/open/misc/asteroid/basalt/lava_land_surface,
 /area/lavaland/surface/outdoors)
 "nM" = (
 /obj/structure/stone_tile/block{
@@ -48969,7 +48969,7 @@ pU
 pU
 pU
 pU
-pU
+fH
 pU
 pU
 pU
@@ -49214,7 +49214,7 @@ pU
 pU
 pU
 pU
-nv
+pU
 pU
 pU
 pU

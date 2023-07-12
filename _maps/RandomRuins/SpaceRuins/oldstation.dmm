@@ -3535,7 +3535,7 @@
 /turf/open/floor/engine/n2,
 /area/ruin/space/ancientstation/beta/atmos)
 "py" = (
-/obj/docking_port/stationary/mining_home,
+/obj/docking_port/stationary/mining_home/common,
 /turf/template_noop,
 /area/template_noop)
 "pD" = (
@@ -7417,7 +7417,7 @@
 	},
 /obj/machinery/computer/atmos_control{
 	dir = 4;
-	atmos_chambers = list("beta-o2"="Beta    Oxygen    Supply","beta-n2"="Beta    Nitrogen    Supply")
+	atmos_chambers = list("beta-o2"="Beta        Oxygen        Supply","beta-n2"="Beta        Nitrogen        Supply")
 	},
 /turf/open/floor/iron,
 /area/ruin/space/ancientstation/beta/atmos)
