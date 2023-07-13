@@ -574,7 +574,7 @@ GLOBAL_LIST_EMPTY(the_station_areas)
 /datum/controller/subsystem/mapping/proc/preloadRuinTemplates()
 	// Still supporting bans by filename
 	var/list/banned = generateMapList("spaceruinblacklist.txt")
-	if(config.minetype == "lavaland")
+	if(config.minetype == "lavaland" || config.minetype == "lavaland_empty")
 		banned += generateMapList("lavaruinblacklist.txt")
 	else if(config.blacklist_file)
 		banned += generateMapList(config.blacklist_file)
