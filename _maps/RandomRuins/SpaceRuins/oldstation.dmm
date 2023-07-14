@@ -7419,7 +7419,7 @@
 	},
 /obj/machinery/computer/atmos_control{
 	dir = 4;
-	atmos_chambers = list("beta-o2"="Beta                Oxygen                Supply","beta-n2"="Beta                Nitrogen                Supply")
+	atmos_chambers = list("beta-o2"="Beta                                Oxygen                                Supply","beta-n2"="Beta                                Nitrogen                                Supply")
 	},
 /turf/open/floor/iron,
 /area/ruin/space/ancientstation/beta/atmos)
@@ -8526,6 +8526,16 @@
 "YW" = (
 /turf/open/floor/iron/textured_half,
 /area/ruin/space/ancientstation/beta/supermatter)
+"YY" = (
+/obj/docking_port/stationary{
+	dwidth = 5;
+	height = 7;
+	name = "Cargo Bay";
+	shuttle_id = "cargo_home";
+	width = 12
+	},
+/turf/template_noop,
+/area/template_noop)
 "YZ" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/spawner/random/maintenance,
@@ -9445,7 +9455,7 @@ aa
 aa
 aa
 aa
-aa
+YY
 aa
 aa
 aa
