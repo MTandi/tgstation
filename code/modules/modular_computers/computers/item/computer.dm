@@ -6,7 +6,7 @@ GLOBAL_LIST_EMPTY(TabletMessengers) // a list of all active messengers, similar 
 /obj/item/modular_computer
 	name = "modular microcomputer"
 	desc = "A small portable microcomputer."
-	icon = 'icons/obj/computer.dmi'
+	icon = 'icons/obj/machines/computer.dmi'
 	icon_state = "laptop"
 	light_on = FALSE
 	integrity_failure = 0.5
@@ -119,7 +119,6 @@ GLOBAL_LIST_EMPTY(TabletMessengers) // a list of all active messengers, similar 
 
 /obj/item/modular_computer/Initialize(mapload)
 	. = ..()
-
 	START_PROCESSING(SSobj, src)
 	if(!physical)
 		physical = src
@@ -143,14 +142,12 @@ GLOBAL_LIST_EMPTY(TabletMessengers) // a list of all active messengers, similar 
 /obj/item/modular_computer/proc/install_default_programs()
 	SHOULD_CALL_PARENT(FALSE)
 	for(var/programs in default_programs + starting_programs)
-		var/datum/computer_file/program/program_type = new programs
+		var/datum/computer_file/program_type = new programs
 		store_file(program_type)
 
 /obj/item/modular_computer/Destroy()
 	STOP_PROCESSING(SSobj, src)
-	wipe_program(forced = TRUE)
-	for(var/datum/computer_file/program/idle as anything in idle_threads)
-		idle.kill_program(TRUE)
+	close_all_programs()
 	//Some components will actually try and interact with this, so let's do it later
 	QDEL_NULL(soundloop)
 	QDEL_LIST(stored_files)
@@ -283,16 +280,15 @@ GLOBAL_LIST_EMPTY(TabletMessengers) // a list of all active messengers, similar 
 	if(crew_manifest_update)
 		GLOB.manifest.modify(computer_id_slot.registered_name, computer_id_slot.assignment, computer_id_slot.get_trim_assignment())
 
-	if(user)
-		if(!issilicon(user) && in_range(src, user))
-			user.put_in_hands(computer_id_slot)
-		balloon_alert(user, "removed ID")
-		to_chat(user, span_notice("You remove the card from the card slot."))
+	if(user && !issilicon(user) && in_range(src, user))
+		user.put_in_hands(computer_id_slot)
 	else
 		computer_id_slot.forceMove(drop_location())
 
 	computer_id_slot = null
 	playsound(src, 'sound/machines/terminal_insert_disc.ogg', 50, FALSE)
+	balloon_alert(user, "removed ID")
+	to_chat(user, span_notice("You remove the card from the card slot."))
 
 	if(ishuman(loc))
 		var/mob/living/carbon/human/human_wearer = loc
@@ -322,18 +318,22 @@ GLOBAL_LIST_EMPTY(TabletMessengers) // a list of all active messengers, similar 
 		if(response == "Yes")
 			turn_on(user)
 
-/obj/item/modular_computer/emag_act(mob/user, forced)
+/obj/item/modular_computer/emag_act(mob/user, obj/item/card/emag/emag_card, forced)
 	if(!enabled && !forced)
-		to_chat(user, span_warning("You'd need to turn the [src] on first."))
+		balloon_alert(user, "turn it on first!")
 		return FALSE
 	if(obj_flags & EMAGGED)
-		to_chat(user, span_notice("You swipe \the [src]. A console window fills the screen, but it quickly closes itself after only a few lines are written to it."))
+		balloon_alert(user, "already emagged!")
+		if (emag_card)
+			to_chat(user, span_notice("You swipe \the [src] with [emag_card]. A console window fills the screen, but it quickly closes itself after only a few lines are written to it."))
 		return FALSE
 
 	. = ..()
 	obj_flags |= EMAGGED
 	device_theme = PDA_THEME_SYNDICATE
-	to_chat(user, span_notice("You swipe \the [src]. A console window momentarily fills the screen, with white text rapidly scrolling past."))
+	balloon_alert(user, "syndieOS loaded")
+	if (emag_card)
+		to_chat(user, span_notice("You swipe \the [src] with [emag_card]. A console window momentarily fills the screen, with white text rapidly scrolling past."))
 	return TRUE
 
 /obj/item/modular_computer/examine(mob/user)
@@ -476,20 +476,14 @@ GLOBAL_LIST_EMPTY(TabletMessengers) // a list of all active messengers, similar 
 		active_program.event_networkfailure(FALSE) // Active program requires NTNet to run but we've just lost connection. Crash.
 
 	for(var/datum/computer_file/program/idle_programs as anything in idle_threads)
-		if(idle_programs.program_state == PROGRAM_STATE_KILLED)
-			idle_threads.Remove(idle_programs)
-			continue
 		idle_programs.process_tick(seconds_per_tick)
 		idle_programs.ntnet_status = get_ntnet_status()
 		if(idle_programs.requires_ntnet && !idle_programs.ntnet_status)
 			idle_programs.event_networkfailure(TRUE)
 
 	if(active_program)
-		if(active_program.program_state == PROGRAM_STATE_KILLED)
-			active_program = null
-		else
-			active_program.process_tick(seconds_per_tick)
-			active_program.ntnet_status = get_ntnet_status()
+		active_program.process_tick(seconds_per_tick)
+		active_program.ntnet_status = get_ntnet_status()
 
 	handle_power(seconds_per_tick) // Handles all computer power interaction
 
@@ -571,20 +565,7 @@ GLOBAL_LIST_EMPTY(TabletMessengers) // a list of all active messengers, similar 
 	data["PC_showexitprogram"] = !!active_program // Hides "Exit Program" button on mainscreen
 	return data
 
-///Wipes the computer's current program. Doesn't handle any of the niceties around doing this
-/obj/item/modular_computer/proc/wipe_program(forced)
-	if(!active_program)
-		return
-	active_program.kill_program(forced)
-	active_program = null
-
-// Relays kill program request to currently active program. Use this to quit current program.
-/obj/item/modular_computer/proc/kill_program(forced = FALSE)
-	wipe_program(forced)
-	update_appearance()
-	update_tablet_open_uis(usr)
-
-/obj/item/modular_computer/proc/open_program(mob/user, datum/computer_file/program/program)
+/obj/item/modular_computer/proc/open_program(mob/user, datum/computer_file/program/program, open_ui = TRUE)
 	if(program.computer != src)
 		CRASH("tried to open program that does not belong to this computer")
 
@@ -594,11 +575,12 @@ GLOBAL_LIST_EMPTY(TabletMessengers) // a list of all active messengers, similar 
 
 	// The program is already running. Resume it.
 	if(program in idle_threads)
-		program.program_state = PROGRAM_STATE_ACTIVE
 		active_program = program
 		program.alert_pending = FALSE
 		idle_threads.Remove(program)
-		update_appearance()
+		if(open_ui)
+			update_tablet_open_uis(user)
+		update_appearance(UPDATE_ICON)
 		return TRUE
 
 	if(!program.is_supported_by_hardware(hardware_flag, 1, user))
@@ -617,8 +599,9 @@ GLOBAL_LIST_EMPTY(TabletMessengers) // a list of all active messengers, similar 
 
 	active_program = program
 	program.alert_pending = FALSE
-	update_appearance()
-	update_tablet_open_uis(user)
+	if(open_ui)
+		update_tablet_open_uis(user)
+	update_appearance(UPDATE_ICON)
 	return TRUE
 
 // Returns 0 for No Signal, 1 for Low Signal and 2 for Good Signal. 3 is for wired connection (always-on)
@@ -650,10 +633,13 @@ GLOBAL_LIST_EMPTY(TabletMessengers) // a list of all active messengers, similar 
 
 	return SSmodular_computers.add_log("[src]: [text]")
 
-/obj/item/modular_computer/proc/shutdown_computer(loud = 1)
-	kill_program(forced = TRUE)
-	for(var/datum/computer_file/program/idle_program in idle_threads)
-		idle_program.kill_program(forced = TRUE)
+/obj/item/modular_computer/proc/close_all_programs()
+	active_program = null
+	for(var/datum/computer_file/program/idle as anything in idle_threads)
+		idle_threads.Remove(idle)
+
+/obj/item/modular_computer/proc/shutdown_computer(loud = TRUE)
+	close_all_programs()
 	if(looping_sound)
 		soundloop.stop()
 	if(physical && loud)
@@ -804,7 +790,7 @@ GLOBAL_LIST_EMPTY(TabletMessengers) // a list of all active messengers, similar 
 		return TOOL_ACT_TOOLTYPE_SUCCESS
 
 	to_chat(user, span_notice("You begin repairing damage to \the [src]..."))
-	if(!tool.use_tool(src, user, 20, volume=50, amount=1))
+	if(!tool.use_tool(src, user, 20, volume=50))
 		return TOOL_ACT_TOOLTYPE_SUCCESS
 	atom_integrity = max_integrity
 	to_chat(user, span_notice("You repair \the [src]."))
@@ -837,3 +823,7 @@ GLOBAL_LIST_EMPTY(TabletMessengers) // a list of all active messengers, similar 
 
 /obj/item/modular_computer/proc/Remove_Messenger()
 	GLOB.TabletMessengers -= src
+
+///Returns a string of what to send at the end of messenger's messages.
+/obj/item/modular_computer/proc/get_messenger_ending()
+	return "Sent from my PDA"

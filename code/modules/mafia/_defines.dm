@@ -53,7 +53,7 @@
 //role flags (special status of roles like detection immune)
 ///to all forms of detection, shows themselves as an assistant.
 #define ROLE_UNDETECTABLE (1<<0)
-///has the ability to kill at night and thus, blocks the game from ending with other teams alive.
+///has the ability to theoretically kill someone singlehandedly, blocks their team from losing against another teams.
 #define ROLE_CAN_KILL (1<<1)
 ///can only be one in a randomly generated game
 #define ROLE_UNIQUE (1<<2)
@@ -68,7 +68,7 @@
 #define CAN_USE_ON_OTHERS (1<<0)
 ///Flag that decides whether the Mafia ability can be used on themselves.
 #define CAN_USE_ON_SELF (1<<1)
-///Flag that decides whether the Mafia ability can be used on dead players. This overwrites the first two, and only allows for dead.
+///Flag that decides whether the Mafia ability can be used on dead players.
 #define CAN_USE_ON_DEAD (1<<2)
 
 #define MAFIA_PHASE_SETUP "No Game"

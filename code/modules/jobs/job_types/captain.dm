@@ -42,7 +42,7 @@
 		/obj/item/skillchip/sabrage = 5,
 	)
 
-	job_flags = JOB_ANNOUNCE_ARRIVAL | JOB_CREW_MANIFEST | JOB_EQUIP_RANK | JOB_CREW_MEMBER | JOB_NEW_PLAYER_JOINABLE | JOB_BOLD_SELECT_TEXT | JOB_REOPEN_ON_ROUNDSTART_LOSS | JOB_ASSIGN_QUIRKS | JOB_CAN_BE_INTERN
+	job_flags = STATION_JOB_FLAGS | JOB_BOLD_SELECT_TEXT | JOB_CANNOT_OPEN_SLOTS
 	rpg_title = "Star Duke"
 
 	voice_of_god_power = 1.4 //Command staff has authority
@@ -79,7 +79,7 @@
 	accessory = /obj/item/clothing/accessory/medal/gold/captain
 	chameleon_extras = list(
 		/obj/item/gun/energy/e_gun,
-		/obj/item/stamp/captain,
+		/obj/item/stamp/head/captain,
 		)
 	implants = list(/obj/item/implant/mindshield)
 	skillchips = list(/obj/item/skillchip/disk_verifier)

@@ -102,6 +102,10 @@
 	else
 		..()
 
+/mob/living/simple_animal/hostile/megafauna/singularity_act()
+	set_health(0)
+	return ..()
+
 /mob/living/simple_animal/hostile/megafauna/dust(just_ash, drop_items, force)
 	if(!force && health > 0)
 		return
@@ -146,6 +150,8 @@
 
 		if (EXPLODE_LIGHT)
 			adjustBruteLoss(50)
+
+	return TRUE
 
 /// Sets/adds the next time the megafauna can use a melee or ranged attack, in deciseconds. It is a list to allow using named args. Use the ignore_staggered var if youre setting the cooldown to ranged_cooldown_time.
 /mob/living/simple_animal/hostile/megafauna/proc/update_cooldowns(list/cooldown_updates, ignore_staggered = FALSE)

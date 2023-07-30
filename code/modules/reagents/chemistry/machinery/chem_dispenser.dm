@@ -152,13 +152,14 @@
 		. += beaker_overlay
 
 
-/obj/machinery/chem_dispenser/emag_act(mob/user)
+/obj/machinery/chem_dispenser/emag_act(mob/user, obj/item/card/emag/emag_card)
 	if(obj_flags & EMAGGED)
-		to_chat(user, span_warning("[src] has no functional safeties to emag."))
-		return
-	to_chat(user, span_notice("You short out [src]'s safeties."))
+		balloon_alert(user, "already emagged!")
+		return FALSE
+	balloon_alert(user, "safeties shorted out")
 	dispensable_reagents |= emagged_reagents//add the emagged reagents to the dispensable ones
 	obj_flags |= EMAGGED
+	return TRUE
 
 /obj/machinery/chem_dispenser/ex_act(severity, target)
 	if(severity <= EXPLODE_LIGHT)
@@ -423,12 +424,12 @@
 	for(var/datum/stock_part/capacitor/capacitor in component_parts)
 		recharge_amount *= capacitor.tier
 		parts_rating += capacitor.tier
-	for(var/datum/stock_part/manipulator/manipulator in component_parts)
-		if (manipulator.tier > 3)
+	for(var/datum/stock_part/servo/servo in component_parts)
+		if (servo.tier > 3)
 			dispensable_reagents |= upgrade_reagents
 		else
 			dispensable_reagents -= upgrade_reagents
-		parts_rating += manipulator.tier
+		parts_rating += servo.tier
 	powerefficiency = round(newpowereff, 0.01)
 
 /obj/machinery/chem_dispenser/proc/replace_beaker(mob/living/user, obj/item/reagent_containers/new_beaker)
@@ -476,7 +477,7 @@
 	has_panel_overlay = FALSE
 	dispensed_temperature = WATER_MATTERSTATE_CHANGE_TEMP // magical mystery temperature of 274.5, where ice does not melt, and water does not freeze
 	amount = 10
-	pixel_y = 6
+	anchored_tabletop_offset = 6
 	circuit = /obj/item/circuitboard/machine/chem_dispenser/drinks
 	working_state = null
 	nopower_state = null
@@ -500,6 +501,7 @@
 		/datum/reagent/consumable/shamblers,
 		/datum/reagent/consumable/spacemountainwind,
 		/datum/reagent/consumable/sodawater,
+		/datum/reagent/consumable/sol_dry,
 		/datum/reagent/consumable/space_up,
 		/datum/reagent/consumable/sugar,
 		/datum/reagent/consumable/tea,
@@ -647,7 +649,7 @@
 /obj/machinery/chem_dispenser/abductor
 	name = "reagent synthesizer"
 	desc = "Synthesizes a variety of reagents using proto-matter."
-	icon = 'icons/obj/abductor.dmi'
+	icon = 'icons/obj/antags/abductor.dmi'
 	icon_state = "chem_dispenser"
 	base_icon_state = "chem_dispenser"
 	has_panel_overlay = FALSE

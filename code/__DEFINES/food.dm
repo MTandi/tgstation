@@ -18,6 +18,7 @@
 #define ORANGES (1<<17)
 #define BUGS (1<<18)
 #define GORE (1<<19)
+#define STONE (1<<20)
 
 DEFINE_BITFIELD(foodtypes, list(
 	"MEAT" = MEAT,
@@ -40,6 +41,7 @@ DEFINE_BITFIELD(foodtypes, list(
 	"ORANGES" = ORANGES,
 	"BUGS" = BUGS,
 	"GORE" = GORE,
+	"STONE" = STONE,
 ))
 
 /// A list of food type names, in order of their flags
@@ -64,6 +66,7 @@ DEFINE_BITFIELD(foodtypes, list(
 	"ORANGES", \
 	"BUGS", \
 	"GORE", \
+	"STONE", \
 )
 
 /// IC meaning (more or less) for food flags
@@ -88,13 +91,15 @@ DEFINE_BITFIELD(foodtypes, list(
 	"Oranges", \
 	"Bugs", \
 	"Gore", \
+	"Rocks", \
 )
 
-#define DRINK_NICE 1
-#define DRINK_GOOD 2
-#define DRINK_VERYGOOD 3
-#define DRINK_FANTASTIC 4
-#define FOOD_AMAZING 5
+#define DRINK_REVOLTING 1
+#define DRINK_NICE 2
+#define DRINK_GOOD 3
+#define DRINK_VERYGOOD 4
+#define DRINK_FANTASTIC 5
+#define FOOD_AMAZING 6
 
 /// Food is "in a container", not in a code sense, but in a literal sense (canned foods)
 #define FOOD_IN_CONTAINER (1<<0)
@@ -188,3 +193,6 @@ DEFINE_BITFIELD(food_flags, list(
 // Venues for the barbots.
 #define VENUE_RESTAURANT "Restaurant Venue"
 #define VENUE_BAR "Bar Venue"
+
+/// How much milk is needed to make butter on a reagent grinder
+#define MILK_TO_BUTTER_COEFF 25

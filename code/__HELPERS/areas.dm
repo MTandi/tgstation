@@ -30,9 +30,9 @@ GLOBAL_LIST_INIT(typecache_powerfailure_safe_areas, typecacheof(/area/station/en
 			if(!checkT)
 				continue
 			checked_turfs[sourceT] |= dir
-			checked_turfs[checkT] |= turn(dir, 180)
+			checked_turfs[checkT] |= REVERSE_DIR(dir)
 			.[sourceT] |= dir
-			.[checkT] |= turn(dir, 180)
+			.[checkT] |= REVERSE_DIR(dir)
 			if(break_if_found[checkT.type] || break_if_found[checkT.loc.type])
 				return FALSE
 			var/static/list/cardinal_cache = list("[NORTH]"=TRUE, "[EAST]"=TRUE, "[SOUTH]"=TRUE, "[WEST]"=TRUE)
@@ -158,7 +158,7 @@ GLOBAL_LIST_INIT(typecache_powerfailure_safe_areas, typecacheof(/area/station/en
 		//inform atoms on the turf that their area has changed
 		for(var/atom/stuff as anything in the_turf)
 			//unregister the stuff from its old area
-			SEND_SIGNAL(stuff, COMSIG_EXIT_AREA, oldA)
+			SEND_SIGNAL(stuff, COMSIG_EXIT_AREA, old_area)
 
 			//register the stuff to its new area. special exception for apc as its not registered to this signal
 			if(istype(stuff, /obj/machinery/power/apc))

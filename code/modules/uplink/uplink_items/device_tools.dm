@@ -19,7 +19,8 @@
 	desc = "The Syndicate surgery duffel bag is a toolkit containing all surgery tools, surgical drapes, \
 			a Syndicate brand MMI, a straitjacket, and a muzzle."
 	item = /obj/item/storage/backpack/duffelbag/syndie/surgery
-	cost = 3
+	cost = 4
+	surplus = 66
 
 /datum/uplink_item/device_tools/encryptionkey
 	name = "Syndicate Encryption Key"
@@ -37,7 +38,7 @@
 			the seemingly magical books of a certain cult. Though lacking the esoteric abilities \
 			of the originals, these inferior copies are still quite useful, being able to provide \
 			both weal and woe on the battlefield, even if they do occasionally bite off a finger."
-	item = /obj/item/storage/book/bible/syndicate
+	item = /obj/item/book/bible/syndicate
 	cost = 5
 
 /datum/uplink_item/device_tools/tram_remote
@@ -256,3 +257,10 @@
 	progression_minimum = 30 MINUTES
 	item = /obj/item/powersink
 	cost = 11
+
+/datum/uplink_item/device_tools/syndicate_contacts
+	name = "Polarized Contact Lenses"
+	desc = "High tech contact lenses that bind directly with the surface of your eyes to give them immunity to flashes and \
+			bright lights. Effective, affordable, and nigh undetectable."
+	item = /obj/item/syndicate_contacts
+	cost = 3
