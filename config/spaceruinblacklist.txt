@@ -39,8 +39,7 @@
 #_maps/RandomRuins/SpaceRuins/dj_station.dmm
 #_maps/RandomRuins/SpaceRuins/emptyshell.dmm
 #_maps/RandomRuins/SpaceRuins/fasttravel.dmm
-#_maps/RandomRuins/SpaceRuins/forgottenship.dmm
-#_maps/RandomRuins/SpaceRuins/forgottenship.dmm
+_maps/RandomRuins/SpaceRuins/forgottenship.dmm
 #_maps/RandomRuins/SpaceRuins/gondolaasteroid.dmm
 #_maps/RandomRuins/SpaceRuins/hellfactory.dmm
 #_maps/RandomRuins/SpaceRuins/hellfactory.dmm
@@ -55,7 +54,7 @@
 #_maps/RandomRuins/SpaceRuins/mrow_thats_right
 #_maps/RandomRuins/SpaceRuins/old_infiltrator.dmm
 #_maps/RandomRuins/SpaceRuins/oldAIsat.dmm
-#_maps/RandomRuins/SpaceRuins/oldstation.dmm
+_maps/RandomRuins/SpaceRuins/oldstation.dmm
 #_maps/RandomRuins/SpaceRuins/oldteleporter.dmm
 #_maps/RandomRuins/SpaceRuins/onehalf.dmm
 #_maps/RandomRuins/SpaceRuins/originalcontent.dmm
@@ -64,7 +63,7 @@
 #_maps/RandomRuins/SpaceRuins/prey_pod.dmm
 #_maps/RandomRuins/SpaceRuins/prey_pod.dmm
 #_maps/RandomRuins/SpaceRuins/prison_shuttle.dmm
-#_maps/RandomRuins/SpaceRuins/russian_derelict.dmm
+_maps/RandomRuins/SpaceRuins/russian_derelict.dmm
 #_maps/RandomRuins/SpaceRuins/shuttlerelic.dmm
 #_maps/RandomRuins/SpaceRuins/space_billboard.dmm
 #_maps/RandomRuins/SpaceRuins/space_billboard.dmm

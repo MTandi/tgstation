@@ -440,6 +440,8 @@ Used by the AI doomsday and the self-destruct nuke.
 
 	if(config.minetype == "lavaland")
 		LoadGroup(FailedZs, "Lavaland", "map_files/Mining", "Lavaland.dmm", default_traits = ZTRAITS_LAVALAND)
+	else if(config.minetype == "lavaland_empty")
+		LoadGroup(FailedZs, "Lavaland", "map_files/Mining", "Lavaland_Empty.dmm", default_traits = ZTRAITS_LAVALAND)
 	else if (!isnull(config.minetype) && config.minetype != "none")
 		INIT_ANNOUNCE("WARNING: An unknown minetype '[config.minetype]' was set! This is being ignored! Update the maploader code!")
 #endif
@@ -585,7 +587,7 @@ GLOBAL_LIST_EMPTY(the_station_areas)
 /datum/controller/subsystem/mapping/proc/preloadRuinTemplates()
 	// Still supporting bans by filename
 	var/list/banned = generateMapList("spaceruinblacklist.txt")
-	if(config.minetype == "lavaland")
+	if(config.minetype == "lavaland" || config.minetype == "lavaland_empty")
 		banned += generateMapList("lavaruinblacklist.txt")
 	else if(config.blacklist_file)
 		banned += generateMapList(config.blacklist_file)

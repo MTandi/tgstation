@@ -13,10 +13,11 @@ Format:
 	votable (is this map votable)
 endmap
 
-# Production-level maps.
+map oldstation
+	#default
+endmap
 
 map birdshot
-	#default
 	maxplayers 66
 	votable
 endmap

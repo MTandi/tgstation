@@ -24,7 +24,7 @@ $include auxtools.txt
 # SERVERSQLNAME tgstation
 
 ## Station name: The name of the station as it is referred to in-game. If commented out, the game will generate a random name instead.
-STATIONNAME Space Station 13
+STATIONNAME Old Station
 
 ## Put on byond hub: Uncomment this to put your server on the byond hub.
 #HUB
@@ -163,7 +163,7 @@ GUEST_BAN
 #WEBCLIENT_ONLY_BYOND_MEMBERS
 
 ## Set to prevent anyone but those ckeys listed in config/whitelist.txt and config/admins.txt from joining your server
-#USEWHITELIST
+USEWHITELIST
 
 ## set a server location for world reboot. Don't include the byond://, just give the address and port.
 ## Don't set this to the same server, BYOND will automatically restart players to the server when it has restarted.
@@ -395,7 +395,7 @@ MINUTE_TOPIC_LIMIT 200
 ## Set to 0 to disable.
 SECOND_CLICK_LIMIT 15
 
-MINUTE_CLICK_LIMIT 400
+MINUTE_CLICK_LIMIT 900
 
 ##Error handling related options
 ## The "cooldown" time for each occurence of a unique error
