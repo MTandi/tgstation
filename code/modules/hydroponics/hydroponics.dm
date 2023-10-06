@@ -10,6 +10,7 @@
 	obj_flags = CAN_BE_HIT | UNIQUE_RENAME
 	circuit = /obj/item/circuitboard/machine/hydroponics
 	use_power = NO_POWER_USE
+	hud_possible = list(HEALTH_HUD, STATUS_HUD)
 	///The amount of water in the tray (max 100)
 	var/waterlevel = 0
 	///The maximum amount of water in the tray
@@ -79,6 +80,102 @@
 
 	AddElement(/datum/element/contextual_screentip_item_typechecks, hovering_item_typechecks)
 	register_context()
+	prepare_huds()
+
+/obj/machinery/hydroponics/prepare_huds()
+	..()
+	med_hud_set_health()
+	med_hud_set_status()
+
+//called when a plant changes health
+/obj/machinery/hydroponics/proc/med_hud_set_health()
+	var/image/holder = hud_list[HEALTH_HUD]
+	if (isnull(holder))
+		return
+	if (plant_status == HYDROTRAY_NO_PLANT || isnull(myseed))
+		return
+	holder.icon_state = "hud[RoundHealth(src)]"
+	var/icon/I = icon(icon, icon_state, dir)
+	holder.pixel_y = I.Height() - world.icon_size
+
+//helper for getting the appropriate health status
+/obj/machinery/hydroponics/proc/RoundHealth()
+	if(plant_status == HYDROTRAY_PLANT_DEAD)
+		return "health-100"
+	var/maxi_health = myseed.endurance
+	var/resulthealth = (plant_health / maxi_health) * 100
+	switch(resulthealth)
+		if(100 to INFINITY)
+			return "health100"
+		if(90.625 to 100)
+			return "health93.75"
+		if(84.375 to 90.625)
+			return "health87.5"
+		if(78.125 to 84.375)
+			return "health81.25"
+		if(71.875 to 78.125)
+			return "health75"
+		if(65.625 to 71.875)
+			return "health68.75"
+		if(59.375 to 65.625)
+			return "health62.5"
+		if(53.125 to 59.375)
+			return "health56.25"
+		if(46.875 to 53.125)
+			return "health50"
+		if(40.625 to 46.875)
+			return "health43.75"
+		if(34.375 to 40.625)
+			return "health37.5"
+		if(28.125 to 34.375)
+			return "health31.25"
+		if(21.875 to 28.125)
+			return "health25"
+		if(15.625 to 21.875)
+			return "health18.75"
+		if(9.375 to 15.625)
+			return "health12.5"
+		if(1 to 9.375)
+			return "health6.25"
+		if(-50 to 1)
+			return "health0"
+		if(-85 to -50)
+			return "health-50"
+		if(-99 to -85)
+			return "health-85"
+		else
+			return "health-100"
+
+//called when the plant changes status
+/obj/machinery/hydroponics/proc/med_hud_set_status()
+	var/image/holder = hud_list[STATUS_HUD]
+	if (isnull(holder))
+		return
+
+	var/icon/I = icon(icon, icon_state, dir)
+	holder.pixel_y = I.Height() - world.icon_size
+	if(plant_status == HYDROTRAY_PLANT_DEAD)
+		holder.icon_state = "huddead"
+	else if (plant_status != HYDROTRAY_NO_PLANT)
+		var/weed_illness = myseed.get_gene(/datum/plant_gene/trait/plant_type/weed_hardy) ? 0 : weedlevel >= 10 ? 2 : weedlevel >= 5 ? 1 : 0
+		var/pest_illness = myseed.get_gene(/datum/plant_gene/trait/carnivory) ? 0 : pestlevel >= 8 ? 2 : pestlevel >= 4 ? 1 : 0
+		var/toxicity_ilness = toxic >= 80 ? 4 : toxic >= 40 ? 3 : 0
+		switch(max(weed_illness, pest_illness, toxicity_ilness))
+			if(4)
+				holder.icon_state = "hudill4"
+			if(3)
+				holder.icon_state = "hudill3"
+			if(2)
+				holder.icon_state = "hudill2"
+			if(1)
+				holder.icon_state = "hudill1"
+			if(0)
+				holder.icon_state = "hudhealthy"
+
+/obj/machinery/hydroponics/Destroy()
+	for(var/datum/atom_hud/data/human/medical/health_hud in GLOB.huds)
+		health_hud.remove_atom_from_hud(src)
+	return ..()
 
 /obj/machinery/hydroponics/add_context(
 	atom/source,
@@ -530,6 +627,15 @@
 		myseed.forceMove(src)
 	SEND_SIGNAL(src, COMSIG_HYDROTRAY_SET_SEED, new_seed)
 	update_appearance()
+
+	for(var/datum/atom_hud/data/human/medical/health_hud in GLOB.huds)
+		if(!isnull(myseed))
+			health_hud.add_atom_to_hud(src)
+			med_hud_set_health()
+			med_hud_set_status()
+		else
+			health_hud.remove_atom_from_hud(src)
+
 	if(isnull(myseed))
 		particles = null
 
@@ -556,6 +662,7 @@
 	weedlevel = new_weedlevel
 	if(update_icon)
 		update_appearance()
+	med_hud_set_status()
 
 /obj/machinery/hydroponics/proc/set_pestlevel(new_pestlevel, update_icon = TRUE)
 	if(pestlevel == new_pestlevel)
@@ -564,6 +671,7 @@
 	pestlevel = new_pestlevel
 	if(update_icon)
 		update_appearance()
+	med_hud_set_status()
 
 /obj/machinery/hydroponics/proc/set_waterlevel(new_waterlevel, update_icon = TRUE)
 	if(waterlevel == new_waterlevel)
@@ -584,6 +692,7 @@
 	plant_health = new_plant_health
 	if(update_icon)
 		update_appearance()
+	med_hud_set_health()
 
 /obj/machinery/hydroponics/proc/set_toxic(new_toxic, update_icon = TRUE)
 	if(toxic == new_toxic)
@@ -592,12 +701,14 @@
 	toxic = new_toxic
 	if(update_icon)
 		update_appearance()
+	med_hud_set_status()
 
 /obj/machinery/hydroponics/proc/set_plant_status(new_plant_status)
 	if(plant_status == new_plant_status)
 		return
 	SEND_SIGNAL(src, COMSIG_HYDROTRAY_SET_PLANT_STATUS, new_plant_status)
 	plant_status = new_plant_status
+	med_hud_set_status()
 
 // The following procs adjust the hydroponics tray variables, and make sure that the stat doesn't go out of bounds.
 
@@ -775,6 +886,8 @@
 /obj/machinery/hydroponics/proc/plantdies()
 	set_plant_health(0, update_icon = FALSE, forced = TRUE)
 	set_plant_status(HYDROTRAY_PLANT_DEAD)
+	med_hud_set_health()
+	med_hud_set_status()
 	set_pestlevel(0, update_icon = FALSE) // Pests die
 	lastproduce = 0
 	update_appearance()
