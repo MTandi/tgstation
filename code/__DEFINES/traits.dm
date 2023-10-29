@@ -282,6 +282,8 @@ Remember to update _globalvars/traits.dm if you're adding/removing/renaming trai
 #define TRAIT_NO_ZOMBIFY "no_zombify"
 /// Carbons with this trait can't have their DNA copied by diseases nor changelings
 #define TRAIT_NO_DNA_COPY "no_dna_copy"
+/// Carbons with this trait cant have their dna scrambled by genetics or a disease retrovirus.
+#define TRAIT_NO_DNA_SCRAMBLE "no_dna_scramble"
 /// Carbons with this trait can eat blood to regenerate their own blood volume, instead of injecting it
 #define TRAIT_DRINKS_BLOOD "drinks_blood"
 /// Mob is immune to clone (cellular) damage
@@ -926,6 +928,8 @@ Remember to update _globalvars/traits.dm if you're adding/removing/renaming trai
 ///Trait needed for the lubefish evolution
 #define TRAIT_FISH_FED_LUBE "fish_fed_lube"
 #define TRAIT_FISH_NO_HUNGER "fish_no_hunger"
+///It comes from a fish case. Relevant for bounties so far.
+#define TRAIT_FISH_FROM_CASE "fish_from_case"
 
 /// Trait given to angelic constructs to let them purge cult runes
 #define TRAIT_ANGELIC "angelic"
