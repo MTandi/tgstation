@@ -581,6 +581,7 @@
 /obj/structure/window/reinforced/spawner/directional/south,
 /obj/structure/table,
 /obj/machinery/door/window/brigdoor/right/directional/east,
+/obj/item/circuitboard/machine/quantum_server,
 /turf/open/floor/iron/dark,
 /area/ruin/space/ancientstation/delta/ai)
 "cA" = (
@@ -1544,6 +1545,15 @@
 /obj/item/surgical_drapes,
 /turf/open/floor/iron/white,
 /area/ruin/space/ancientstation/delta/rnd)
+"gS" = (
+/obj/structure/window/reinforced/spawner/directional/west,
+/obj/structure/window/reinforced/spawner/directional/north,
+/obj/structure/window/reinforced/spawner/directional/south,
+/obj/structure/table,
+/obj/machinery/door/window/brigdoor/right/directional/east,
+/obj/item/circuitboard/computer/cargo,
+/turf/open/floor/iron/dark,
+/area/ruin/space/ancientstation/delta/ai)
 "gU" = (
 /turf/open/floor/plating/airless,
 /area/space/nearstation)
@@ -14261,7 +14271,7 @@ ag
 aM
 NS
 bh
-cz
+gS
 wF
 cz
 ad
