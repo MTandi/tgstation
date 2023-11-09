@@ -41,6 +41,8 @@ GLOBAL_LIST_EMPTY(crafting_recipes)
 /// This is a global list of typepaths, these typepaths are atoms or reagents that are associated with crafting recipes.
 /// This includes stuff like recipe components and results.
 GLOBAL_LIST_EMPTY(crafting_recipes_atoms)
+/// List of all food items
+GLOBAL_LIST_EMPTY(food_list)
 /// Global list of all cooking related crafting recipes.
 GLOBAL_LIST_EMPTY(cooking_recipes)
 /// This is a global list of typepaths, these typepaths are atoms or reagents that are associated with cooking recipes.

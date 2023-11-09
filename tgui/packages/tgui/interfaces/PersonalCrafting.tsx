@@ -119,6 +119,7 @@ type Recipe = {
   structures: string[];
   steps: string[];
   foodtypes: string[];
+  new_reagents: string[];
 };
 
 type Diet = {
@@ -806,6 +807,16 @@ const RecipeContent = ({ item, craftable, busy, mode, diet }, context) => {
                   <ul style={{ 'padding-left': '20px' }}>
                     {item.steps.map((step) => (
                       <li key={step}>{step}</li>
+                    ))}
+                  </ul>
+                </Box>
+              )}
+              {!!item.new_reagents?.length && (
+                <Box>
+                  <GroupTitle title="New reagents" />
+                  <ul style={{ 'padding-left': '20px' }}>
+                    {item.new_reagents.map((reagent) => (
+                      <li key={reagent}>{reagent}</li>
                     ))}
                   </ul>
                 </Box>

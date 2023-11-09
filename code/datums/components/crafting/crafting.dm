@@ -581,6 +581,14 @@
 			var/id = atoms.Find(req_atom)
 			data["chem_catalysts"]["[id]"] = recipe.chem_catalysts[req_atom]
 
+	// Food reagent conversion
+	if (ispath(recipe.result, /obj/item/food))
+		var/obj/item/food/result_food = GLOB.food_list[recipe.result]
+		data["new_reagents"] = list()
+		for(var/reagent in result_food.food_reagents)
+			if(!ispath(reagent, /datum/reagent/consumable/nutriment))
+				data["new_reagents"] += reagent
+
 	// Reaction data
 	if(ispath(recipe.reaction))
 		data["is_reaction"] = TRUE

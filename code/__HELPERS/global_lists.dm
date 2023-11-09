@@ -65,6 +65,7 @@
 	init_hair_gradients()
 	init_keybindings()
 	GLOB.emote_list = init_emote_list() // WHY DOES THIS NEED TO GO HERE? IT JUST INITS DATUMS
+	GLOB.food_list = init_subtypes_w_path_keys(/obj/item/food)
 	init_crafting_recipes()
 	init_crafting_recipes_atoms()
 
