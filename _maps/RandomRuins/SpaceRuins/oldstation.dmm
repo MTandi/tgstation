@@ -1528,7 +1528,7 @@
 "gM" = (
 /obj/machinery/rnd/production/circuit_imprinter/offstation,
 /obj/effect/decal/cleanable/dirt,
-/obj/item/reagent_containers/dropper,
+/obj/item/circuitboard/machine/rdserver/oldstation,
 /turf/open/floor/iron/white,
 /area/ruin/space/ancientstation/delta/rnd)
 "gP" = (
@@ -1925,6 +1925,7 @@
 /obj/machinery/atmospherics/pipe/smart/manifold4w/scrubbers/hidden/layer2{
 	dir = 6
 	},
+/obj/item/reagent_containers/dropper,
 /turf/open/floor/iron/white,
 /area/ruin/space/ancientstation/delta/rnd)
 "iq" = (
@@ -3696,13 +3697,6 @@
 	},
 /turf/closed/wall,
 /area/ruin/space/ancientstation/beta/atmos)
-"qG" = (
-/obj/effect/decal/cleanable/dirt,
-/obj/effect/decal/cleanable/dirt,
-/obj/machinery/rnd/server/oldstation,
-/obj/effect/mapping_helpers/broken_machine,
-/turf/open/floor/iron,
-/area/ruin/space/ancientstation/delta/rnd)
 "qH" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/machinery/plumbing/input,
@@ -8361,7 +8355,7 @@
 "Yk" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/sign/poster/official/cleanliness/directional/north,
-/obj/machinery/light/directional/north,
+/obj/machinery/light/warm/directional/north,
 /turf/open/floor/iron/cafeteria,
 /area/ruin/space/ancientstation/charlie/kitchen)
 "Yl" = (
@@ -14217,7 +14211,7 @@ kw
 Hk
 kw
 iq
-qG
+ca
 WV
 ob
 hY
