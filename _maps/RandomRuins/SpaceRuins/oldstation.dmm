@@ -926,7 +926,6 @@
 /area/ruin/space/ancientstation/delta/rnd)
 "eb" = (
 /obj/effect/decal/cleanable/dirt,
-/obj/machinery/light/small/broken/directional/south,
 /obj/structure/closet/crate/secure/engineering{
 	req_access = list("away_engineering")
 	},
@@ -937,6 +936,7 @@
 /obj/item/screwdriver/power,
 /obj/item/storage/belt/utility,
 /obj/item/clothing/head/utility/hardhat/welding,
+/obj/machinery/light/small/broken/directional/east,
 /turf/open/floor/plating,
 /area/ruin/space/ancientstation/beta/supermatter)
 "ed" = (
@@ -1155,8 +1155,8 @@
 /turf/open/floor/iron,
 /area/ruin/space/ancientstation/charlie/sec)
 "eV" = (
-/obj/machinery/light/small/directional/north,
 /obj/machinery/modular_computer/preset/engineering,
+/obj/machinery/light/small/directional/west,
 /turf/open/floor/engine/airless,
 /area/ruin/space/ancientstation/beta/supermatter)
 "eW" = (
@@ -6591,7 +6591,6 @@
 "LA" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/closet/secure_closet/freezer/fridge/open,
-/obj/machinery/light/small/directional/north,
 /turf/open/floor/iron/cafeteria,
 /area/ruin/space/ancientstation/charlie/kitchen)
 "LC" = (
@@ -6830,7 +6829,7 @@
 	dir = 8
 	},
 /obj/effect/decal/cleanable/dirt,
-/obj/machinery/light/small/directional/south,
+/obj/machinery/light/small/directional/west,
 /turf/open/floor/plating,
 /area/ruin/space/ancientstation/beta/supermatter)
 "Ni" = (
@@ -7730,7 +7729,7 @@
 /obj/item/clothing/head/utility/radiation,
 /obj/item/geiger_counter,
 /obj/item/geiger_counter,
-/obj/machinery/light/small/broken/directional/north,
+/obj/machinery/light/small/broken/directional/east,
 /turf/open/floor/engine/airless,
 /area/ruin/space/ancientstation/beta/supermatter)
 "TA" = (
@@ -8361,8 +8360,8 @@
 /area/ruin/space/ancientstation/charlie/engie)
 "Yk" = (
 /obj/effect/decal/cleanable/dirt,
-/obj/machinery/light/small/directional/north,
 /obj/structure/sign/poster/official/cleanliness/directional/north,
+/obj/machinery/light/directional/north,
 /turf/open/floor/iron/cafeteria,
 /area/ruin/space/ancientstation/charlie/kitchen)
 "Yl" = (
