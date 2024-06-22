@@ -68,26 +68,20 @@
 	AddComponent(/datum/component/basic_mob_attack_telegraph)
 	AddComponentFrom(INNATE_TRAIT, /datum/component/shovel_hands)
 	if (tameable)
-		AddComponent(\
-			/datum/component/tameable,\
-			food_types = list(/obj/item/food/grown/ash_flora),\
-			tame_chance = 10,\
-			bonus_tame_chance = 5,\
-			after_tame = CALLBACK(src, PROC_REF(tamed)),\
-		)
+		AddComponent(/datum/component/tameable, food_types = list(/obj/item/food/grown/ash_flora), tame_chance = 10, bonus_tame_chance = 5)
 
 	tentacles = new (src)
 	tentacles.Grant(src)
 	melee_tentacles = new(src)
 	melee_tentacles.Grant(src)
-	AddComponent(/datum/component/revenge_ability, melee_tentacles, targetting = ai_controller.blackboard[BB_TARGETTING_DATUM], max_range = 1, target_self = TRUE)
+	AddComponent(/datum/component/revenge_ability, melee_tentacles, targeting = GET_TARGETING_STRATEGY(ai_controller.blackboard[BB_TARGETING_STRATEGY]), max_range = 1, target_self = TRUE)
 	tentacle_line = new (src)
 	tentacle_line.Grant(src)
-	AddComponent(/datum/component/revenge_ability, tentacle_line, targetting = ai_controller.blackboard[BB_TARGETTING_DATUM], min_range = 2, max_range = 9)
+	AddComponent(/datum/component/revenge_ability, tentacle_line, targeting = GET_TARGETING_STRATEGY(ai_controller.blackboard[BB_TARGETING_STRATEGY]), min_range = 2, max_range = 9)
 
 	tentacles_ready()
 	RegisterSignal(src, COMSIG_MOB_ABILITY_FINISHED, PROC_REF(used_ability))
-	ai_controller.set_blackboard_key(BB_BASIC_FOODS, goliath_foods)
+	ai_controller.set_blackboard_key(BB_BASIC_FOODS, typecacheof(goliath_foods))
 	ai_controller.set_blackboard_key(BB_GOLIATH_TENTACLES, tentacles)
 
 /mob/living/basic/mining/goliath/examine(mob/user)
@@ -120,6 +114,9 @@
 		return
 	balloon_alert(user, "ready to ride")
 	qdel(attacking_item)
+	make_rideable()
+
+/mob/living/basic/mining/goliath/proc/make_rideable()
 	saddled = TRUE
 	buckle_lying = 0
 	add_overlay("goliath_saddled")
@@ -149,7 +146,7 @@
 	icon_state = tentacle_warning_state
 
 /// Get ready for mounting
-/mob/living/basic/mining/goliath/proc/tamed()
+/mob/living/basic/mining/goliath/tamed(mob/living/tamer, atom/food)
 	tamed = TRUE
 
 // Copy entire faction rather than just placing user into faction, to avoid tentacle peril on station
@@ -162,6 +159,19 @@
 
 /mob/living/basic/mining/goliath/ranged_secondary_attack(atom/atom_target, modifiers)
 	tentacle_line?.Trigger(target = atom_target)
+
+/// Version of the goliath that already starts saddled and doesn't require a lasso to be ridden.
+/mob/living/basic/mining/goliath/deathmatch
+	saddled = TRUE
+	buckle_lying = 0
+
+/mob/living/basic/mining/goliath/deathmatch/Initialize(mapload)
+	. = ..()
+	make_rideable()
+
+/mob/living/basic/mining/goliath/deathmatch/make_rideable()
+	add_overlay("goliath_saddled")
+	AddElement(/datum/element/ridable, /datum/component/riding/creature/goliath/deathmatch)
 
 /// Legacy Goliath mob with different sprites, largely the same behaviour
 /mob/living/basic/mining/goliath/ancient

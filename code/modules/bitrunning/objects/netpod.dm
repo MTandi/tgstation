@@ -11,6 +11,8 @@
 	max_integrity = 300
 	obj_flags = BLOCKS_CONSTRUCTION
 	state_open = TRUE
+	interaction_flags_mouse_drop = NEED_HANDS | NEED_DEXTERITY
+
 	/// Whether we have an ongoing connection
 	var/connected = FALSE
 	/// A player selected outfit by clicking the netpod
@@ -24,18 +26,12 @@
 	/// Static list of outfits to select from
 	var/list/cached_outfits = list()
 
-/obj/machinery/netpod/Initialize(mapload)
-	. = ..()
-
-	return INITIALIZE_HINT_LATELOAD
-
-/obj/machinery/netpod/LateInitialize()
+/obj/machinery/netpod/post_machine_initialize()
 	. = ..()
 
 	disconnect_damage = BASE_DISCONNECT_DAMAGE
 	find_server()
 
-	RegisterSignal(src, COMSIG_ATOM_EXAMINE, PROC_REF(on_examine))
 	RegisterSignal(src, COMSIG_ATOM_TAKE_DAMAGE, PROC_REF(on_damage_taken))
 	RegisterSignal(src, COMSIG_MACHINERY_POWER_LOST, PROC_REF(on_power_loss))
 	RegisterSignals(src, list(COMSIG_QDELETING,	COMSIG_MACHINERY_BROKEN),PROC_REF(on_broken))
@@ -45,7 +41,35 @@
 
 /obj/machinery/netpod/Destroy()
 	. = ..()
-	cached_outfits.Cut()
+
+	QDEL_LIST(cached_outfits)
+
+/obj/machinery/netpod/examine(mob/user)
+	. = ..()
+
+	if(isnull(server_ref?.resolve()))
+		. += span_infoplain("It's not connected to anything.")
+		. += span_infoplain("Netpods must be built within 4 tiles of a server.")
+		return
+
+	if(!isobserver(user))
+		. += span_infoplain("Drag yourself into the pod to engage the link.")
+		. += span_infoplain("It has limited resuscitation capabilities. Remaining in the pod can heal some injuries.")
+		. += span_infoplain("It has a security system that will alert the occupant if it is tampered with.")
+
+	if(isnull(occupant))
+		. += span_infoplain("It's currently unoccupied.")
+		return
+
+	. += span_infoplain("It's currently occupied by [occupant].")
+
+	if(isobserver(user))
+		. += span_notice("As an observer, you can click this netpod to jump to its avatar.")
+		return
+
+	. += span_notice("It can be pried open with a crowbar, but its safety mechanisms will alert the occupant.")
+
+
 
 /obj/machinery/netpod/add_context(atom/source, list/context, obj/item/held_item, mob/user)
 	. = ..()
@@ -58,7 +82,6 @@
 		context[SCREENTIP_CONTEXT_LMB] = "Pry Open"
 		return CONTEXTUAL_SCREENTIP_SET
 
-	return CONTEXTUAL_SCREENTIP_SET
 
 /obj/machinery/netpod/update_icon_state()
 	if(!is_operational)
@@ -79,12 +102,10 @@
 
 	return ..()
 
-/obj/machinery/netpod/MouseDrop_T(mob/target, mob/user)
+/obj/machinery/netpod/mouse_drop_receive(mob/target, mob/user, params)
 	var/mob/living/carbon/player = user
-	if(!iscarbon(player) || !Adjacent(player) || !ISADVANCEDTOOLUSER(player) || !is_operational || !state_open)
-		return
 
-	if(player.buckled || HAS_TRAIT(player, TRAIT_HANDS_BLOCKED))
+	if(!iscarbon(player) || !is_operational || !state_open || player.buckled)
 		return
 
 	close_machine(target)
@@ -92,24 +113,24 @@
 /obj/machinery/netpod/crowbar_act(mob/living/user, obj/item/tool)
 	if(user.combat_mode)
 		attack_hand(user)
-		return TOOL_ACT_TOOLTYPE_SUCCESS
+		return ITEM_INTERACT_SUCCESS
 
 	if(default_pry_open(tool, user) || default_deconstruction_crowbar(tool))
-		return TOOL_ACT_TOOLTYPE_SUCCESS
+		return ITEM_INTERACT_SUCCESS
 
 /obj/machinery/netpod/screwdriver_act(mob/living/user, obj/item/tool)
 	if(occupant)
 		balloon_alert(user, "in use!")
-		return TOOL_ACT_TOOLTYPE_SUCCESS
+		return ITEM_INTERACT_SUCCESS
 
 	if(state_open)
 		balloon_alert(user, "close first.")
-		return TOOL_ACT_TOOLTYPE_SUCCESS
+		return ITEM_INTERACT_SUCCESS
 
 	if(default_deconstruction_screwdriver(user, "[base_icon_state]_panel", "[base_icon_state]_closed", tool))
 		update_appearance() // sometimes icon doesnt properly update during flick()
 		ui_close(user)
-		return TOOL_ACT_TOOLTYPE_SUCCESS
+		return ITEM_INTERACT_SUCCESS
 
 /obj/machinery/netpod/attack_hand(mob/living/user, list/modifiers)
 	. = ..()
@@ -249,7 +270,7 @@
 		open_machine()
 		return
 
-	mob_occupant.playsound_local(src, "sound/magic/blink.ogg", 25, TRUE)
+	mob_occupant.playsound_local(src, 'sound/magic/blink.ogg', 25, TRUE)
 	mob_occupant.set_static_vision(2 SECONDS)
 	mob_occupant.set_temp_blindness(1 SECONDS)
 	mob_occupant.Paralyze(2 SECONDS)
@@ -401,26 +422,6 @@
 
 	QDEL_NULL(avatar)
 
-/// User inspects the machine
-/obj/machinery/netpod/proc/on_examine(datum/source, mob/examiner, list/examine_text)
-	SIGNAL_HANDLER
-
-	if(isnull(server_ref?.resolve()))
-		examine_text += span_infoplain("It's not connected to anything.")
-		examine_text += span_infoplain("Netpods must be built within 4 tiles of a server.")
-		return
-
-	examine_text += span_infoplain("Drag yourself into the pod to engage the link.")
-	examine_text += span_infoplain("It has limited resuscitation capabilities. Remaining in the pod can heal some injuries.")
-	examine_text += span_infoplain("It has a security system that will alert the occupant if it is tampered with.")
-
-	if(isnull(occupant))
-		examine_text += span_notice("It is currently unoccupied.")
-		return
-
-	examine_text += span_notice("It is currently occupied by [occupant].")
-	examine_text += span_notice("It can be pried open with a crowbar, but its safety mechanisms will alert the occupant.")
-
 /// Boots out anyone in the machine && opens it
 /obj/machinery/netpod/proc/on_power_loss(datum/source)
 	SIGNAL_HANDLER
@@ -444,8 +445,16 @@
 /// Resolves a path to an outfit.
 /obj/machinery/netpod/proc/resolve_outfit(text)
 	var/path = text2path(text)
-	if(ispath(path, /datum/outfit))
-		return path
+	if(!ispath(path, /datum/outfit))
+		return
+
+	for(var/wardrobe in cached_outfits)
+		for(var/outfit in wardrobe["outfits"])
+			if(path == outfit["path"])
+				return path
+
+	message_admins("[usr]:[usr.ckey] attempted to select an unavailable outfit from a netpod")
+	return
 
 /// Severs the connection with the current avatar
 /obj/machinery/netpod/proc/sever_connection()

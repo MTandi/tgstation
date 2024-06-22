@@ -51,35 +51,33 @@ GLOBAL_LIST_EMPTY(total_extraction_beacons)
 	beacon_ref = WEAKREF(chosen_beacon)
 	balloon_alert(user, "linked!")
 
-/obj/item/extraction_pack/afterattack(atom/movable/thing, mob/living/carbon/human/user, proximity_flag, params)
-	. = ..()
-	. |= AFTERATTACK_PROCESSED_ITEM
+/obj/item/extraction_pack/interact_with_atom(atom/interacting_with, mob/living/user, list/modifiers)
+	if(!ismovable(interacting_with))
+		return NONE
+	if(!isturf(interacting_with.loc)) // no extracting stuff inside other stuff
+		return NONE
+	var/atom/movable/thing = interacting_with
+	if(thing.anchored)
+		return NONE
 
+	. = ITEM_INTERACT_BLOCKING
 	var/obj/structure/extraction_point/beacon = beacon_ref?.resolve()
 	if(isnull(beacon))
-		balloon_alert(user, "not linked")
+		balloon_alert(user, "not linked!")
 		beacon_ref = null
-		return
-
+		return .
 	if(!can_use_indoors)
 		var/area/area = get_area(thing)
 		if(!area.outdoors)
-			balloon_alert(user, "not outdoors")
-			return
-
-	if(!proximity_flag || !istype(thing))
-		return
-
+			balloon_alert(user, "not outdoors!")
+			return .
 	if(!safe_for_living_creatures && check_for_living_mobs(thing))
 		to_chat(user, span_warning("[src] is not safe for use with living creatures, they wouldn't survive the trip back!"))
 		balloon_alert(user, "not safe!")
-		return
-
-	if(!isturf(thing.loc)) // no extracting stuff inside other stuff
-		return
-	if(thing.anchored || (thing.move_resist > max_force_fulton))
-		return
-
+		return .
+	if(thing.move_resist > max_force_fulton)
+		balloon_alert(user, "too heavy!")
+		return .
 	balloon_alert_to_viewers("attaching...")
 	playsound(thing, 'sound/items/zip.ogg', vol = 50, vary = TRUE)
 	if(isliving(thing))
@@ -88,11 +86,12 @@ GLOBAL_LIST_EMPTY(total_extraction_beacons)
 			to_chat(thing, span_userdanger("You are being extracted! Stand still to proceed."))
 
 	if(!do_after(user, 5 SECONDS, target = thing))
-		return
+		return .
 
 	balloon_alert_to_viewers("extracting!")
-	if(loc == user)
-		user.back?.atom_storage?.attempt_insert(src, user, force = STORAGE_SOFT_LOCKED)
+	if(loc == user && ishuman(user))
+		var/mob/living/carbon/human/human_user = user
+		human_user.back?.atom_storage?.attempt_insert(src, user, force = STORAGE_SOFT_LOCKED)
 	uses_left--
 
 	if(uses_left <= 0)
@@ -128,15 +127,15 @@ GLOBAL_LIST_EMPTY(total_extraction_beacons)
 	holder_obj.add_overlay(balloon)
 	playsound(holder_obj.loc, 'sound/items/fultext_deploy.ogg', vol = 50, vary = TRUE, extrarange = -3)
 
-	animate(holder_obj, pixel_z = 10, time = 2 SECONDS)
-	animate(pixel_z = 15, time = 1 SECONDS)
-	animate(pixel_z = 10, time = 1 SECONDS)
-	animate(pixel_z = 15, time = 1 SECONDS)
-	animate(pixel_z = 10, time = 1 SECONDS)
+	animate(holder_obj, pixel_z = 10, time = 2 SECONDS, flags = ANIMATION_RELATIVE)
+	animate(pixel_z = 5, time = 1 SECONDS, flags = ANIMATION_RELATIVE)
+	animate(pixel_z = -5, time = 1 SECONDS, flags = ANIMATION_RELATIVE)
+	animate(pixel_z = 5, time = 1 SECONDS, flags = ANIMATION_RELATIVE)
+	animate(pixel_z = -5, time = 1 SECONDS, flags = ANIMATION_RELATIVE)
 	sleep(6 SECONDS)
 
 	playsound(holder_obj.loc, 'sound/items/fultext_launch.ogg', vol = 50, vary = TRUE, extrarange = -3)
-	animate(holder_obj, pixel_z = 1000, time = 3 SECONDS)
+	animate(holder_obj, pixel_z = 1000, time = 3 SECONDS, flags = ANIMATION_RELATIVE)
 
 	if(ishuman(thing))
 		var/mob/living/carbon/human/creature = thing
@@ -157,9 +156,9 @@ GLOBAL_LIST_EMPTY(total_extraction_beacons)
 
 	holder_obj.forceMove(pick(flooring_near_beacon))
 
-	animate(holder_obj, pixel_z = 10, time = 5 SECONDS)
-	animate(pixel_z = 15, time = 1 SECONDS)
-	animate(pixel_z = 10, time = 1 SECONDS)
+	animate(holder_obj, pixel_z = -990, time = 5 SECONDS, flags = ANIMATION_RELATIVE)
+	animate(pixel_z = 5, time = 1 SECONDS, flags = ANIMATION_RELATIVE)
+	animate(pixel_z = -5, time = 1 SECONDS, flags = ANIMATION_RELATIVE)
 	sleep(7 SECONDS)
 
 	balloon3 = mutable_appearance('icons/effects/fulton_balloon.dmi', "fulton_retract")
@@ -172,13 +171,14 @@ GLOBAL_LIST_EMPTY(total_extraction_beacons)
 	holder_obj.cut_overlay(balloon3)
 	thing.set_anchored(FALSE) // An item has to be unanchored to be extracted in the first place.
 	thing.set_density(initial(thing.density))
-	animate(holder_obj, pixel_z = 0, time = 0.5 SECONDS)
+	animate(holder_obj, pixel_z = -10, time = 0.5 SECONDS, flags = ANIMATION_RELATIVE)
 	sleep(0.5 SECONDS)
 
 	thing.forceMove(holder_obj.loc)
 	qdel(holder_obj)
 	if(uses_left <= 0)
 		qdel(src)
+	return ITEM_INTERACT_SUCCESS
 
 /obj/item/fulton_core
 	name = "extraction beacon assembly kit"
@@ -243,3 +243,7 @@ GLOBAL_LIST_EMPTY(total_extraction_beacons)
 
 /obj/effect/extraction_holder/singularity_pull()
 	return
+
+/obj/item/extraction_pack/syndicate
+	name = "syndicate fulton extraction pack"
+	can_use_indoors = TRUE
