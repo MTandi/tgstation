@@ -4,7 +4,7 @@
 	///Icon state of the overlay
 	var/icon_state
 	///Icon of the overlay
-	var/icon = 'icons/mob/species/misc/bodypart_overlay_simple.dmi'
+	var/icon = 'icons/mob/human/species/misc/bodypart_overlay_simple.dmi'
 	///Color we apply to our overlay (none by default)
 	var/draw_color
 
@@ -29,3 +29,9 @@
 /datum/bodypart_overlay/simple/creampie
 	icon_state = "creampie_human"
 	layers = EXTERNAL_FRONT
+
+///bags drawn beneath the eyes
+/datum/bodypart_overlay/simple/bags
+	icon_state = "bags"
+	draw_color = COLOR_WEBSAFE_DARK_GRAY
+	layers = EXTERNAL_ADJACENT

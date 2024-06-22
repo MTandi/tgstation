@@ -43,7 +43,10 @@
 	using.icon = ui_style
 	static_inventory += using
 
-	mymob.canon_client.clear_screen()
+	healthdoll = new /atom/movable/screen/healthdoll/living(null, src)
+	infodisplay += healthdoll
+
+	mymob.canon_client?.clear_screen()
 
 	for(var/atom/movable/screen/inventory/inv in (static_inventory + toggleable_inventory))
 		if(inv.slot_id)
@@ -62,10 +65,3 @@
 		for(var/obj/item/I in D.held_items)
 			I.screen_loc = null
 			D.client.screen -= I
-
-
-//Dextrous simple mobs can use hands!
-/mob/living/simple_animal/create_mob_hud()
-	if(dextrous)
-		hud_type = dextrous_hud_type
-	return ..()

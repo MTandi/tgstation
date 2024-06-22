@@ -4,11 +4,17 @@
 #define CHANNEL_VOX 1022
 #define CHANNEL_JUKEBOX 1021
 #define CHANNEL_HEARTBEAT 1020 //sound channel for heartbeats
-#define CHANNEL_AMBIENCE 1019
-#define CHANNEL_BUZZ 1018
-#define CHANNEL_TRAITOR 1017
-#define CHANNEL_CHARGED_SPELL 1016
-#define CHANNEL_ELEVATOR 1015
+#define CHANNEL_BOSS_MUSIC 1019
+#define CHANNEL_AMBIENCE 1018
+#define CHANNEL_BUZZ 1017
+#define CHANNEL_TRAITOR 1016
+#define CHANNEL_CHARGED_SPELL 1015
+#define CHANNEL_ELEVATOR 1014
+//THIS SHOULD ALWAYS BE THE LOWEST ONE!
+//KEEP IT UPDATED
+#define CHANNEL_HIGHEST_AVAILABLE 1013
+
+#define MAX_INSTRUMENT_CHANNELS (128 * 6)
 
 ///Default range of a sound.
 #define SOUND_RANGE 17
@@ -21,13 +27,6 @@
 #define SOUND_DEFAULT_FALLOFF_DISTANCE 1 //For a normal sound this would be 1 tile of no falloff
 ///The default exponent of sound falloff
 #define SOUND_FALLOFF_EXPONENT 6
-
-//THIS SHOULD ALWAYS BE THE LOWEST ONE!
-//KEEP IT UPDATED
-
-#define CHANNEL_HIGHEST_AVAILABLE 1015
-
-#define MAX_INSTRUMENT_CHANNELS (128 * 6)
 
 #define SOUND_MINIMUM_PRESSURE 10
 
@@ -171,3 +170,9 @@ GLOBAL_LIST_INIT(announcer_keys, list(
 #define SFX_TREE_CHOP "tree_chop"
 #define SFX_ROCK_TAP "rock_tap"
 #define SFX_SEAR "sear"
+#define SFX_REEL "reel"
+#define SFX_RATTLE "rattle"
+#define SFX_PORTAL_ENTER "portal_enter"
+#define SFX_PORTAL_CLOSE "portal_closed"
+#define SFX_PORTAL_CREATED "portal_created"
+#define SFX_SCREECH "screech"

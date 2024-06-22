@@ -69,7 +69,7 @@
 	else if(isgrenade(parent) || islandmine(parent) || issupplypod(parent))
 		radius = magnitude
 
-/datum/component/pellet_cloud/Destroy(force, silent)
+/datum/component/pellet_cloud/Destroy(force)
 	purple_hearts = null
 	pellets = null
 	targets_hit = null
@@ -277,7 +277,7 @@
 	P.original = target
 	P.fired_from = parent
 	P.firer = parent // don't hit ourself that would be really annoying
-	P.impacted = list(parent = TRUE) // don't hit the target we hit already with the flak
+	P.impacted = list(WEAKREF(parent) = TRUE) // don't hit the target we hit already with the flak
 	P.suppressed = SUPPRESSED_VERY // set the projectiles to make no message so we can do our own aggregate message
 	P.preparePixelProjectile(target, parent)
 	RegisterSignal(P, COMSIG_PROJECTILE_SELF_ON_HIT, PROC_REF(pellet_hit))
@@ -307,7 +307,7 @@
 					var/damage_dealt = wound_info_by_part[hit_part][CLOUD_POSITION_DAMAGE]
 					var/w_bonus = wound_info_by_part[hit_part][CLOUD_POSITION_W_BONUS]
 					var/bw_bonus = wound_info_by_part[hit_part][CLOUD_POSITION_BW_BONUS]
-					var/wound_type = (initial(P.damage_type) == BRUTE) ? WOUND_BLUNT : WOUND_BURN // sharpness is handled in the wound rolling
+					var/wounding_type = (initial(P.damage_type) == BRUTE) ? WOUND_BLUNT : WOUND_BURN // sharpness is handled in the wound rolling
 					wound_info_by_part -= hit_part
 
 					// technically this only checks armor worn the moment that all the pellets resolve rather than as each one hits you,
@@ -320,7 +320,7 @@
 							armor_factor *= ARMOR_WEAKENED_MULTIPLIER
 						damage_dealt *= max(0, 1 - armor_factor*0.01)
 
-					hit_part.painless_wound_roll(wound_type, damage_dealt, w_bonus, bw_bonus, initial(P.sharpness))
+					hit_part.painless_wound_roll(wounding_type, damage_dealt, w_bonus, bw_bonus, initial(P.sharpness))
 
 		var/limb_hit_text = ""
 		if(hit_part)

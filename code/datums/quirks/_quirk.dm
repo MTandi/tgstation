@@ -29,10 +29,10 @@
 	/// The icon to show in the preferences menu.
 	/// This references a tgui icon, so it can be FontAwesome or a tgfont (with a tg- prefix).
 	var/icon
-	/// A list of items people can receive from mail who have this quirk enabled
+	/// A lazylist of items people can receive from mail who have this quirk enabled
 	/// The base weight for the each quirk's mail goodies list to be selected is 5
 	/// then the item selected is determined by pick(selected_quirk.mail_goodies)
-	var/mail_goodies = list()
+	var/list/mail_goodies
 
 /datum/quirk/Destroy()
 	if(quirk_holder)
@@ -167,7 +167,7 @@
  * * default_location - If the item isn't possible to equip in a valid slot, this is a description of where the item was spawned.
  * * notify_player - If TRUE, adds strings to where_items_spawned list to be output to the player in [/datum/quirk/item_quirk/post_add()]
  */
-/datum/quirk/item_quirk/proc/give_item_to_holder(quirk_item, list/valid_slots, flavour_text = null, default_location = "at your feet", notify_player = TRUE)
+/datum/quirk/item_quirk/proc/give_item_to_holder(obj/item/quirk_item, list/valid_slots, flavour_text = null, default_location = "at your feet", notify_player = TRUE)
 	if(ispath(quirk_item))
 		quirk_item = new quirk_item(get_turf(quirk_holder))
 
@@ -199,32 +199,25 @@
  * Arguments:
  * * Medical- If we want the long, fancy descriptions that show up in medical records, or if not, just the name
  * * Category- Which types of quirks we want to print out. Defaults to everything
+ * * from_scan- If the source of this call is like a health analyzer or HUD, in which case QUIRK_HIDE_FROM_MEDICAL hides the quirk.
  */
-/mob/living/proc/get_quirk_string(medical, category = CAT_QUIRK_ALL) //helper string. gets a string of all the quirks the mob has
+/mob/living/proc/get_quirk_string(medical = FALSE, category = CAT_QUIRK_ALL, from_scan = FALSE)
 	var/list/dat = list()
-	switch(category)
-		if(CAT_QUIRK_ALL)
-			for(var/V in quirks)
-				var/datum/quirk/T = V
-				dat += medical ? T.medical_record_text : T.name
-		//Major Disabilities
-		if(CAT_QUIRK_MAJOR_DISABILITY)
-			for(var/V in quirks)
-				var/datum/quirk/T = V
-				if(T.value < -4)
-					dat += medical ? T.medical_record_text : T.name
-		//Minor Disabilities
-		if(CAT_QUIRK_MINOR_DISABILITY)
-			for(var/V in quirks)
-				var/datum/quirk/T = V
-				if(T.value >= -4 && T.value < 0)
-					dat += medical ? T.medical_record_text : T.name
-		//Neutral and Positive quirks
-		if(CAT_QUIRK_NOTES)
-			for(var/V in quirks)
-				var/datum/quirk/T = V
-				if(T.value > -1)
-					dat += medical ? T.medical_record_text : T.name
+	for(var/datum/quirk/candidate as anything in quirks)
+		if(from_scan & candidate.quirk_flags & QUIRK_HIDE_FROM_SCAN)
+			continue
+		switch(category)
+			if(CAT_QUIRK_MAJOR_DISABILITY)
+				if(candidate.value >= -4)
+					continue
+			if(CAT_QUIRK_MINOR_DISABILITY)
+				if(!ISINRANGE(candidate.value, -4, -1))
+					continue
+			if(CAT_QUIRK_NOTES)
+				if(candidate.value < 0)
+					continue
+		dat += medical ? candidate.medical_record_text : candidate.name
+
 	if(!dat.len)
 		return medical ? "No issues have been declared." : "None"
 	return medical ?  dat.Join("<br>") : dat.Join(", ")

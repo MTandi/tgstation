@@ -15,14 +15,14 @@
 	else
 		..()
 
+/// Attempt to grant control of a mob to ghosts before spawning it in. if spawn_anyway_if_no_player = TRUE, we spawn the mob even if there's no ghosts
 /datum/shuttle_event/simple_spawner/player_controlled/proc/try_grant_ghost_control(spawn_type)
-	var/list/candidates = poll_ghost_candidates(ghost_alert_string + " (Warning: you will not be able to return to your body!)", role_type, FALSE, 10 SECONDS)
-	var/mob/dead/observer/candidate = pick(candidates)
-	if(candidate || spawn_anyway_if_no_player)
-		var/mob/living/new_mob = new spawn_type (get_turf(get_spawn_turf()))
-		if(candidate)
-			new_mob.ckey = candidate.ckey
-		post_spawn(new_mob)
+	var/mob/chosen_one = SSpolling.poll_ghost_candidates(ghost_alert_string + " (Warning: you will not be able to return to your body!)", check_jobban = role_type, poll_time = 10 SECONDS, alert_pic = spawn_type, role_name_text = "shot at shuttle", amount_to_pick = 1)
+	if(isnull(chosen_one) && !spawn_anyway_if_no_player)
+		return
+	var/mob/living/new_mob = new spawn_type (get_turf(get_spawn_turf()))
+	new_mob.ckey = chosen_one.ckey
+	post_spawn(new_mob)
 
 ///BACK FOR REVENGE!!!
 /datum/shuttle_event/simple_spawner/player_controlled/alien_queen
@@ -37,6 +37,7 @@
 	spawn_anyway_if_no_player = FALSE
 	ghost_alert_string = "Would you like to be an alien queen shot at the shuttle?"
 	remove_from_list_when_spawned = TRUE
+	self_destruct_when_empty = TRUE
 
 	role_type = ROLE_ALIEN
 
@@ -53,6 +54,7 @@
 	spawn_anyway_if_no_player = TRUE
 	ghost_alert_string = "Would you like to be a space carp to pester the emergency shuttle?"
 	remove_from_list_when_spawned = TRUE
+	self_destruct_when_empty = TRUE
 
 	role_type = ROLE_SENTIENCE
 

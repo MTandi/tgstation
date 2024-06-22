@@ -38,6 +38,12 @@
 		/obj/item/melee/baton/security/boomerang/loaded = 1
 	)
 	rpg_title = "Guard"
+	alternate_titles = list(
+		JOB_SECURITY_OFFICER_MEDICAL,
+		JOB_SECURITY_OFFICER_ENGINEERING,
+		JOB_SECURITY_OFFICER_SUPPLY,
+		JOB_SECURITY_OFFICER_SCIENCE,
+	)
 	job_flags = STATION_JOB_FLAGS
 
 
@@ -117,6 +123,12 @@ GLOBAL_LIST_EMPTY(security_officer_distribution)
 		SSid_access.apply_trim_to_card(worn_id, dep_trim)
 		spawning.sec_hud_set_ID()
 
+		// Update PDA to match new trim.
+		var/obj/item/modular_computer/pda/pda = spawning.get_item_by_slot(ITEM_SLOT_BELT)
+		var/assignment = worn_id.get_trim_assignment()
+		if(istype(pda) && !isnull(assignment))
+			pda.imprint_id(spawning.real_name, assignment)
+
 	var/spawn_point = pick(LAZYACCESS(GLOB.department_security_spawns, department))
 
 	if(!CONFIG_GET(flag/sec_start_brig) && (destination || spawn_point))
@@ -161,16 +173,18 @@ GLOBAL_LIST_EMPTY(security_officer_distribution)
 		partners += partner.real_name
 
 	if (partners.len)
-		for (var/obj/item/modular_computer/pda as anything in GLOB.TabletMessengers)
-			if (pda.saved_identification in partners)
-				targets += pda
+		for(var/messenger_ref in GLOB.pda_messengers)
+			var/datum/computer_file/program/messenger/messenger = GLOB.pda_messengers[messenger_ref]
+			if(!(messenger.computer?.saved_identification in partners))
+				continue
+			targets += messenger
 
 	if (!targets.len)
 		return
 
-	var/datum/signal/subspace/messaging/tablet_msg/signal = new(announcement_system, list(
-		"name" = "Security Department Update",
-		"job" = "Automated Announcement System",
+	var/datum/signal/subspace/messaging/tablet_message/signal = new(announcement_system, list(
+		"fakename" = "Security Department Update",
+		"fakejob" = "Automated Announcement System",
 		"message" = "Officer [officer.real_name] has been assigned to your department, [department].",
 		"targets" = targets,
 		"automated" = TRUE,
@@ -213,6 +227,7 @@ GLOBAL_LIST_EMPTY(security_officer_distribution)
 	backpack = /obj/item/storage/backpack/security
 	satchel = /obj/item/storage/backpack/satchel/sec
 	duffelbag = /obj/item/storage/backpack/duffelbag/sec
+	messenger = /obj/item/storage/backpack/messenger/sec
 
 	box = /obj/item/storage/box/survival/security
 	chameleon_extras = list(

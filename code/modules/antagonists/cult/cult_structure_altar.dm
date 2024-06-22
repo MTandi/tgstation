@@ -22,7 +22,7 @@
 			OUTPUT_ITEMS = list(/obj/structure/constructshell),
 			),
 		UNHOLY_WATER = list(
-			PREVIEW_IMAGE = image(icon = 'icons/obj/drinks/bottles.dmi', icon_state = "holyflask"),
+			PREVIEW_IMAGE = image(icon = 'icons/obj/drinks/bottles.dmi', icon_state = "unholyflask"),
 			OUTPUT_ITEMS = list(/obj/item/reagent_containers/cup/beaker/unholywater),
 			),
 	)
@@ -30,7 +30,7 @@
 	options = altar_items
 
 /obj/structure/destructible/cult/item_dispenser/altar/succcess_message(mob/living/user, obj/item/spawned_item)
-	to_chat(user, span_cultitalic("You kneel before [src] and your faith is rewarded with [spawned_item]!"))
+	to_chat(user, span_cult_italic("You kneel before [src] and your faith is rewarded with [spawned_item]!"))
 
 #undef ELDRITCH_WHETSTONE
 #undef CONSTRUCT_SHELL

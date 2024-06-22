@@ -117,9 +117,7 @@
 /turf/open/floor/engine,
 /area/shuttle/hunter)
 "fp" = (
-/obj/machinery/power/smes/engineering{
-	charge = 1e+006
-	},
+/obj/machinery/power/smes/ship,
 /obj/structure/cable,
 /obj/effect/decal/cleanable/dirt,
 /obj/machinery/light/small/directional/south,
@@ -279,6 +277,10 @@
 "lI" = (
 /obj/effect/turf_decal/tile/dark_blue/diagonal_centre,
 /turf/open/floor/iron/white/diagonal,
+/area/shuttle/hunter)
+"mc" = (
+/obj/machinery/fugitive_locator,
+/turf/open/floor/iron/kitchen/small,
 /area/shuttle/hunter)
 "mz" = (
 /obj/effect/decal/cleanable/dirt,
@@ -1218,7 +1220,7 @@ oL
 CW
 zY
 xF
-lu
+mc
 PC
 XX
 CW

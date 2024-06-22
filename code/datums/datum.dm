@@ -44,13 +44,6 @@
 	/// Datum level flags
 	var/datum_flags = NONE
 
-#ifndef EXPERIMENT_515_DONT_CACHE_REF
-	/// A cached version of our \ref
-	/// The brunt of \ref costs are in creating entries in the string tree (a tree of immutable strings)
-	/// This avoids doing that more then once per datum by ensuring ref strings always have a reference to them after they're first pulled
-	var/cached_ref
-#endif
-
 	/// A weak reference to another datum
 	var/datum/weakref/weak_reference
 
@@ -67,13 +60,21 @@
 	var/list/filter_data
 
 #ifdef REFERENCE_TRACKING
-	var/running_find_references
+	/// When was this datum last touched by a reftracker?
+	/// If this value doesn't match with the start of the search
+	/// We know this datum has never been seen before, and we should check it
 	var/last_find_references = 0
+	/// How many references we're trying to find when searching
+	var/references_to_clear = 0
 	#ifdef REFERENCE_TRACKING_DEBUG
 	///Stores info about where refs are found, used for sanity checks and testing
 	var/list/found_refs
 	#endif
 #endif
+
+	// If we have called dump_harddel_info already. Used to avoid duped calls (since we call it immediately in some cases on failure to process)
+	// Create and destroy is weird and I wanna cover my bases
+	var/harddel_deets_dumped = FALSE
 
 #ifdef DATUMVAR_DEBUGGING_MODE
 	var/list/cached_vars
@@ -104,7 +105,7 @@
  *
  * Returns [QDEL_HINT_QUEUE]
  */
-/datum/proc/Destroy(force=FALSE, ...)
+/datum/proc/Destroy(force = FALSE)
 	SHOULD_CALL_PARENT(TRUE)
 	SHOULD_NOT_SLEEP(TRUE)
 	tag = null
@@ -128,13 +129,14 @@
 	//BEGIN: ECS SHIT
 	var/list/dc = _datum_components
 	if(dc)
-		var/all_components = dc[/datum/component]
-		if(length(all_components))
-			for(var/datum/component/component as anything in all_components)
-				qdel(component, FALSE, TRUE)
-		else
-			var/datum/component/C = all_components
-			qdel(C, FALSE, TRUE)
+		for(var/component_key in dc)
+			var/component_or_list = dc[component_key]
+			if(islist(component_or_list))
+				for(var/datum/component/component as anything in component_or_list)
+					qdel(component, FALSE)
+			else
+				var/datum/component/C = component_or_list
+				qdel(C, FALSE)
 		dc.Cut()
 
 	_clear_signal_refs()
@@ -204,7 +206,7 @@
 
 ///Serializes into JSON. Does not encode type.
 /datum/proc/serialize_json(list/options)
-	. = serialize_list(options)
+	. = serialize_list(options, list())
 	if(!islist(.))
 		. = null
 	else
@@ -311,12 +313,22 @@
 	filter_data[name] = copied_parameters
 	update_filters()
 
+///A version of add_filter that takes a list of filters to add rather than being individual, to limit calls to update_filters().
+/datum/proc/add_filters(list/list/filters)
+	LAZYINITLIST(filter_data)
+	for(var/list/individual_filter as anything in filters)
+		var/list/params = individual_filter["params"]
+		var/list/copied_parameters = params.Copy()
+		copied_parameters["priority"] = individual_filter["priority"]
+		filter_data[individual_filter["name"]] = copied_parameters
+	update_filters()
+
 /// Reapplies all the filters.
 /datum/proc/update_filters()
-	ASSERT(isatom(src) || istype(src, /image))
+	ASSERT(isatom(src) || isimage(src))
 	var/atom/atom_cast = src // filters only work with images or atoms.
 	atom_cast.filters = null
-	filter_data = sortTim(filter_data, GLOBAL_PROC_REF(cmp_filter_data_priority), TRUE)
+	sortTim(filter_data, GLOBAL_PROC_REF(cmp_filter_data_priority), TRUE)
 	for(var/filter_raw in filter_data)
 		var/list/data = filter_data[filter_raw]
 		var/list/arguments = data.Copy()
@@ -375,7 +387,7 @@
 
 /// Returns the filter associated with the passed key
 /datum/proc/get_filter(name)
-	ASSERT(isatom(src) || istype(src, /image))
+	ASSERT(isatom(src) || isimage(src))
 	if(filter_data && filter_data[name])
 		var/atom/atom_cast = src // filters only work with images or atoms.
 		return atom_cast.filters[filter_data.Find(name)]
@@ -398,7 +410,20 @@
 	update_filters()
 
 /datum/proc/clear_filters()
-	ASSERT(isatom(src) || istype(src, /image))
+	ASSERT(isatom(src) || isimage(src))
 	var/atom/atom_cast = src // filters only work with images or atoms.
 	filter_data = null
 	atom_cast.filters = null
+
+/// Return text from this proc to provide extra context to hard deletes that happen to it
+/// Optional, you should use this for cases where replication is difficult and extra context is required
+/// Can be called more then once per object, use harddel_deets_dumped to avoid duplicate calls (I am so sorry)
+/datum/proc/dump_harddel_info()
+	return
+
+///images are pretty generic, this should help a bit with tracking harddels related to them
+/image/dump_harddel_info()
+	if(harddel_deets_dumped)
+		return
+	harddel_deets_dumped = TRUE
+	return "Image icon: [icon] - icon_state: [icon_state] [loc ? "loc: [loc] ([loc.x],[loc.y],[loc.z])" : ""]"

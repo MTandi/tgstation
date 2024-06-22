@@ -18,6 +18,7 @@
 	has_closed_overlay = FALSE
 	can_install_electronics = FALSE
 	paint_jobs = null
+	can_weld_shut = FALSE
 
 	var/foldedbag_path = /obj/item/bodybag
 	var/obj/item/bodybag/foldedbag_instance = null
@@ -160,7 +161,7 @@
 			to_chat(content, span_userdanger("You're suddenly forced into a tiny, compressed space!"))
 		if(iscarbon(content))
 			var/mob/living/carbon/mob = content
-			if (mob.dna.get_mutation(/datum/mutation/human/dwarfism))
+			if (mob.dna?.get_mutation(/datum/mutation/human/dwarfism))
 				max_weight_of_contents = max(WEIGHT_CLASS_NORMAL, max_weight_of_contents)
 				continue
 		if(!isitem(content))
@@ -170,7 +171,7 @@
 		if(A_is_item.w_class < max_weight_of_contents)
 			continue
 		max_weight_of_contents = A_is_item.w_class
-	folding_bodybag.w_class = max_weight_of_contents
+	folding_bodybag.update_weight_class(max_weight_of_contents)
 	the_folder.put_in_hands(folding_bodybag)
 
 /// Environmental bags. They protect against bad weather.
@@ -191,8 +192,7 @@
 
 /obj/structure/closet/body_bag/environmental/Initialize(mapload)
 	. = ..()
-	for(var/trait in weather_protection)
-		ADD_TRAIT(src, trait, ROUNDSTART_TRAIT)
+	add_traits(weather_protection, INNATE_TRAIT)
 	refresh_air()
 
 /obj/structure/closet/body_bag/environmental/Destroy()

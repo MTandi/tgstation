@@ -9,7 +9,7 @@
 	icon_state = "revolver"
 	inhand_icon_state = "gun"
 	worn_icon_state = "gun"
-	flags_1 = CONDUCT_1
+	obj_flags = CONDUCTS_ELECTRICITY
 	appearance_flags = TILE_BOUND|PIXEL_SCALE|LONG_GLIDE|KEEP_TOGETHER
 	slot_flags = ITEM_SLOT_BELT
 	custom_materials = list(/datum/material/iron=SHEET_MATERIAL_AMOUNT)
@@ -27,11 +27,12 @@
 	var/vary_fire_sound = TRUE
 	var/fire_sound_volume = 50
 	var/dry_fire_sound = 'sound/weapons/gun/general/dry_fire.ogg'
+	var/dry_fire_sound_volume = 30
 	var/suppressed = null //whether or not a message is displayed when fired
 	var/can_suppress = FALSE
 	var/suppressed_sound = 'sound/weapons/gun/general/heavy_shot_suppressed.ogg'
 	var/suppressed_volume = 60
-	var/can_unsuppress = TRUE
+	var/can_unsuppress = TRUE /// whether a gun can be unsuppressed. for ballistics, also determines if it generates a suppressor overlay
 	var/recoil = 0 //boom boom shake the room
 	var/clumsy_check = TRUE
 	var/obj/item/ammo_casing/chambered = null
@@ -49,6 +50,9 @@
 
 	/// Just 'slightly' snowflakey way to modify projectile damage for projectiles fired from this gun.
 	var/projectile_damage_multiplier = 1
+
+	/// Even snowflakier way to modify projectile wounding bonus/potential for projectiles fired from this gun.
+	var/projectile_wound_bonus = 0
 
 	var/spread = 0 //Spread induced by the gun itself.
 	var/randomspread = 1 //Set to 0 for shotguns. This is used for weapons that don't fire all their bullets at once.
@@ -91,28 +95,35 @@
 		QDEL_NULL(suppressed)
 	return ..()
 
+/obj/item/gun/apply_fantasy_bonuses(bonus)
+	. = ..()
+	fire_delay = modify_fantasy_variable("fire_delay", fire_delay, -bonus, 0)
+	projectile_damage_multiplier = modify_fantasy_variable("projectile_damage_multiplier", projectile_damage_multiplier, bonus/10, 0.1)
+
+/obj/item/gun/remove_fantasy_bonuses(bonus)
+	fire_delay = reset_fantasy_variable("fire_delay", fire_delay)
+	projectile_damage_multiplier = reset_fantasy_variable("projectile_damage_multiplier", projectile_damage_multiplier)
+	return ..()
+
 /// Handles adding [the seclite mount component][/datum/component/seclite_attachable] to the gun.
 /// If the gun shouldn't have a seclight mount, override this with a return.
 /// Or, if a child of a gun with a seclite mount has slightly different behavior or icons, extend this.
 /obj/item/gun/proc/add_seclight_point()
 	return
 
-/obj/item/gun/handle_atom_del(atom/A)
-	if(A == pin)
+/obj/item/gun/Exited(atom/movable/gone, direction)
+	. = ..()
+	if(gone == pin)
 		pin = null
-	if(A == chambered)
+	if(gone == chambered)
 		chambered = null
 		update_appearance()
-	if(A == suppressed)
+	if(gone == suppressed)
 		clear_suppressor()
-	return ..()
-
-/obj/item/gun/Exited(atom/movable/gone, direction)
 	if(gone == bayonet)
 		bayonet = null
 		if(!QDELING(src))
 			update_appearance()
-	return ..()
 
 ///Clears var and updates icon. In the case of ballistic weapons, also updates the gun's weight.
 /obj/item/gun/proc/clear_suppressor()
@@ -158,7 +169,7 @@
 
 /obj/item/gun/proc/shoot_with_empty_chamber(mob/living/user as mob|obj)
 	balloon_alert_to_viewers("*click*")
-	playsound(src, dry_fire_sound, 30, TRUE)
+	playsound(src, dry_fire_sound, dry_fire_sound_volume, TRUE)
 
 /obj/item/gun/proc/fire_sounds()
 	if(suppressed)
@@ -200,8 +211,8 @@
 /obj/item/gun/emp_act(severity)
 	. = ..()
 	if(!(. & EMP_PROTECT_CONTENTS))
-		for(var/obj/O in contents)
-			O.emp_act(severity)
+		for(var/obj/inside in contents)
+			inside.emp_act(severity)
 
 /obj/item/gun/attack_self_secondary(mob/user, modifiers)
 	. = ..()
@@ -237,29 +248,66 @@
 
 	return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
 
-/obj/item/gun/afterattack_secondary(mob/living/victim, mob/living/user, proximity_flag, click_parameters)
-	if(!isliving(victim) || !IN_GIVEN_RANGE(user, victim, GUNPOINT_SHOOTER_STRAY_RANGE))
-		return ..() //if they're out of range, just shootem.
-	if(!can_hold_up)
-		return ..()
+/obj/item/gun/pre_attack(atom/A, mob/living/user, params)
+	. = ..()
+	if(.)
+		return .
+	if(isnull(bayonet) || !user.combat_mode)
+		return .
+	return bayonet.melee_attack_chain(user, A, params)
+
+/obj/item/gun/item_interaction(mob/living/user, obj/item/tool, list/modifiers)
+	if(user.combat_mode)
+		return NONE
+
+	if(istype(tool, /obj/item/knife))
+		var/obj/item/knife/new_stabber = tool
+		if(!can_bayonet || !new_stabber.bayonet || !isnull(bayonet)) //ensure the gun has an attachment point available, and that the knife is compatible with it.
+			return ITEM_INTERACT_BLOCKING
+		if(!user.transferItemToLoc(new_stabber, src))
+			return ITEM_INTERACT_BLOCKING
+		to_chat(user, span_notice("You attach [new_stabber] to [src]'s bayonet lug."))
+		bayonet = new_stabber
+		update_appearance()
+		return ITEM_INTERACT_SUCCESS
+
+	return NONE
+
+/obj/item/gun/interact_with_atom(atom/interacting_with, mob/living/user, list/modifiers)
+	if(user.combat_mode && isliving(interacting_with))
+		return ITEM_INTERACT_SKIP_TO_ATTACK // Gun bash / bayonet attack
+	if(try_fire_gun(interacting_with, user, list2params(modifiers)))
+		return ITEM_INTERACT_SUCCESS
+	return NONE
+
+/obj/item/gun/interact_with_atom_secondary(atom/interacting_with, mob/living/user, list/modifiers)
+	if(!can_hold_up || !isliving(interacting_with))
+		return interact_with_atom(interacting_with, user, modifiers)
+
 	var/datum/component/gunpoint/gunpoint_component = user.GetComponent(/datum/component/gunpoint)
 	if (gunpoint_component)
-		if(gunpoint_component.target == victim)
-			balloon_alert(user, "already holding them up!")
-		else
-			balloon_alert(user, "already holding someone up!")
-		return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
-	if (user == victim)
+		balloon_alert(user, "already holding [gunpoint_component.target == interacting_with ? "them" : "someone"] up!")
+		return ITEM_INTERACT_BLOCKING
+	if (user == interacting_with)
 		balloon_alert(user, "can't hold yourself up!")
-		return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
+		return ITEM_INTERACT_BLOCKING
 
-	if(do_after(user, 0.5 SECONDS, victim))
-		user.AddComponent(/datum/component/gunpoint, victim, src)
-	return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
+	if(do_after(user, 0.5 SECONDS, interacting_with))
+		user.AddComponent(/datum/component/gunpoint, interacting_with, src)
+	return ITEM_INTERACT_SUCCESS
 
-/obj/item/gun/afterattack(atom/target, mob/living/user, flag, params)
-	..()
-	return fire_gun(target, user, flag, params) | AFTERATTACK_PROCESSED_ITEM
+/obj/item/gun/ranged_interact_with_atom(atom/interacting_with, mob/living/user, list/modifiers)
+	if(try_fire_gun(interacting_with, user, list2params(modifiers)))
+		return ITEM_INTERACT_SUCCESS
+	return ITEM_INTERACT_BLOCKING
+
+/obj/item/gun/ranged_interact_with_atom_secondary(atom/interacting_with, mob/living/user, list/modifiers)
+	if(IN_GIVEN_RANGE(user, interacting_with, GUNPOINT_SHOOTER_STRAY_RANGE))
+		return interact_with_atom_secondary(interacting_with, user, modifiers)
+	return ..()
+
+/obj/item/gun/proc/try_fire_gun(atom/target, mob/living/user, params)
+	return fire_gun(target, user, user.Adjacent(target), params)
 
 /obj/item/gun/proc/fire_gun(atom/target, mob/living/user, flag, params)
 	if(QDELETED(target))
@@ -391,6 +439,7 @@
 	update_appearance()
 	return TRUE
 
+///returns true if the gun successfully fires
 /obj/item/gun/proc/process_fire(atom/target, mob/living/user, message = TRUE, params = null, zone_override = "", bonus_spread = 0)
 	var/base_bonus_spread = 0
 	if(user)
@@ -453,39 +502,6 @@
 /obj/item/gun/proc/reset_semicd()
 	semicd = FALSE
 
-/obj/item/gun/attack(mob/M, mob/living/user)
-	if(user.combat_mode) //Flogging
-		if(bayonet)
-			M.attackby(bayonet, user)
-			return
-		else
-			return ..()
-	return
-
-/obj/item/gun/attack_atom(obj/O, mob/living/user, params)
-	if(user.combat_mode)
-		if(bayonet)
-			O.attackby(bayonet, user)
-			return
-	return ..()
-
-/obj/item/gun/attackby(obj/item/I, mob/living/user, params)
-	if(user.combat_mode)
-		return ..()
-
-	else if(istype(I, /obj/item/knife))
-		var/obj/item/knife/K = I
-		if(!can_bayonet || !K.bayonet || bayonet) //ensure the gun has an attachment point available, and that the knife is compatible with it.
-			return ..()
-		if(!user.transferItemToLoc(I, src))
-			return
-		to_chat(user, span_notice("You attach [K] to [src]'s bayonet lug."))
-		bayonet = K
-		update_appearance()
-
-	else
-		return ..()
-
 /obj/item/gun/screwdriver_act(mob/living/user, obj/item/I)
 	. = ..()
 	if(.)
@@ -500,7 +516,7 @@
 
 		if(Adjacent(user) && !issilicon(user))
 			user.put_in_hands(bayonet)
-		return TOOL_ACT_TOOLTYPE_SUCCESS
+		return ITEM_INTERACT_SUCCESS
 
 	else if(pin?.pin_removable && user.is_holding(src))
 		user.visible_message(span_warning("[user] attempts to remove [pin] from [src] with [I]."),
@@ -511,7 +527,7 @@
 			user.visible_message(span_notice("[pin] is pried out of [src] by [user], destroying the pin in the process."),
 								span_warning("You pry [pin] out with [I], destroying the pin in the process."), null, 3)
 			QDEL_NULL(pin)
-			return TOOL_ACT_TOOLTYPE_SUCCESS
+			return ITEM_INTERACT_SUCCESS
 
 /obj/item/gun/welder_act(mob/living/user, obj/item/I)
 	. = ..()
@@ -560,6 +576,9 @@
 		knife_overlay.pixel_y = knife_y_offset
 		. += knife_overlay
 
+/obj/item/gun/animate_atom_living(mob/living/owner)
+	new /mob/living/simple_animal/hostile/mimic/copy/ranged(drop_location(), src, owner)
+
 /obj/item/gun/proc/handle_suicide(mob/living/carbon/human/user, mob/living/carbon/human/target, params, bypass_timer)
 	if(!ishuman(user) || !ishuman(target))
 		return
@@ -576,7 +595,7 @@
 
 	semicd = TRUE
 
-	if(!bypass_timer && (!do_after(user, 120, target) || user.zone_selected != BODY_ZONE_PRECISE_MOUTH))
+	if(!bypass_timer && (!do_after(user, 12 SECONDS, target) || user.zone_selected != BODY_ZONE_PRECISE_MOUTH))
 		if(user)
 			if(user == target)
 				user.visible_message(span_notice("[user] decided not to shoot."))

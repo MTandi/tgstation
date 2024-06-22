@@ -10,6 +10,7 @@
 	greyscale_config_inhand_left = /datum/greyscale_config/sneakers/inhand_left
 	greyscale_config_inhand_right = /datum/greyscale_config/sneakers/inhand_right
 	flags_1 = IS_PLAYER_COLORABLE_1
+	interaction_flags_mouse_drop = NEED_HANDS
 
 /obj/item/clothing/shoes/sneakers/black
 	name = "black shoes"
@@ -90,11 +91,6 @@
 	. = ..()
 	AddElement(/datum/element/update_icon_updates_onmob, ITEM_SLOT_HANDCUFFED)
 
-/obj/item/clothing/shoes/sneakers/orange/handle_atom_del(atom/deleting_atom)
-	if(deleting_atom == attached_cuffs)
-		moveToNullspace(attached_cuffs)
-	return ..()
-
 /obj/item/clothing/shoes/sneakers/orange/Destroy()
 	QDEL_NULL(attached_cuffs)
 	return ..()
@@ -151,10 +147,9 @@
 			return FALSE
 	return ..()
 
-/obj/item/clothing/shoes/sneakers/orange/MouseDrop(atom/over)
-	var/mob/m = usr
-	if(ishuman(m))
-		var/mob/living/carbon/human/c = m
+/obj/item/clothing/shoes/sneakers/orange/mouse_drop_dragged(atom/over_object, mob/user)
+	if(ishuman(user))
+		var/mob/living/carbon/human/c = user
 		if(c.shoes == src && attached_cuffs)
 			to_chat(c, span_warning("You need help taking these off!"))
 			return

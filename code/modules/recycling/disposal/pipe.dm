@@ -76,10 +76,13 @@
 		expel(holdplease, get_turf(src), 0)
 	stored = null // It gets dumped out in expel()
 
-/obj/structure/disposalpipe/handle_atom_del(atom/A)
-	if(A == stored && !QDELETED(src))
-		spawn_pipe = FALSE
-		stored = null
+/obj/structure/disposalpipe/Exited(atom/movable/gone, direction)
+	. = ..()
+	if(gone != stored || QDELETED(src))
+		return
+	spawn_pipe = FALSE
+	stored = null
+	if(QDELETED(gone))
 		deconstruct(FALSE) //pipe has broken.
 
 // returns the direction of the next pipe object, given the entrance dir
@@ -167,26 +170,24 @@
 	return TRUE
 
 // called when pipe is cut with welder
-/obj/structure/disposalpipe/deconstruct(disassembled = TRUE)
-	if(!(flags_1 & NODECONSTRUCT_1))
-		if(disassembled)
-			if(spawn_pipe)
-				if(isnull(stored)) // Don't have something? Make one now
-					stored = new /obj/structure/disposalconstruct(src, null, SOUTH, FALSE, src)
-				stored.forceMove(loc)
-				transfer_fingerprints_to(stored)
-				stored.setDir(dir)
-				stored = null
-				spawn_pipe = FALSE
-		else
-			var/turf/T = get_turf(src)
-			for(var/D in GLOB.cardinals)
-				if(D & dpdir)
-					var/obj/structure/disposalpipe/broken/P = new(T)
-					P.setDir(D)
+/obj/structure/disposalpipe/atom_deconstruct(disassembled = TRUE)
+	if(disassembled)
+		if(spawn_pipe)
+			var/obj/structure/disposalconstruct/construct = stored
+			if(!construct) // Don't have something? Make one now
+				construct = new /obj/structure/disposalconstruct(src, null, SOUTH, FALSE, src)
+			stored = null
+			construct.forceMove(loc)
+			transfer_fingerprints_to(construct)
+			construct.setDir(dir)
+			spawn_pipe = FALSE
+	else
+		var/turf/location = get_turf(src)
+		for(var/dir in GLOB.cardinals)
+			if(dir & dpdir)
+				var/obj/structure/disposalpipe/broken/pipe = new(location)
+				pipe.setDir(dir)
 	spew_forth()
-	qdel(src)
-
 
 /obj/structure/disposalpipe/singularity_pull(S, current_size)
 	..()
@@ -317,6 +318,19 @@
 	// broken pipes always have dpdir=0 so they're not found as 'real' pipes
 	// i.e. will be treated as an empty turf
 	spawn_pipe = FALSE
+	anchored = FALSE
 
-/obj/structure/disposalpipe/broken/deconstruct()
-	qdel(src)
+/obj/structure/disposalpipe/rotator
+	icon_state = "pipe-r1"
+	initialize_dirs = DISP_DIR_LEFT | DISP_DIR_RIGHT | DISP_DIR_FLIP
+	flip_type = /obj/structure/disposalpipe/rotator/flip
+	/// In what direction the atom travels.
+	var/direction_angle = -90
+
+/obj/structure/disposalpipe/rotator/nextdir(obj/structure/disposalholder/holder)
+	return turn(holder.dir, direction_angle)
+
+/obj/structure/disposalpipe/rotator/flip
+	icon_state = "pipe-r2"
+	flip_type = /obj/structure/disposalpipe/rotator
+	direction_angle = 90

@@ -1,9 +1,16 @@
-import { multiline } from 'common/string';
-import { CheckboxInput, FeatureChoiced, FeatureDropdownInput, FeatureToggle, Feature, FeatureNumberInput } from '../base';
+import {
+  CheckboxInput,
+  Feature,
+  FeatureChoiced,
+  FeatureSliderInput,
+  FeatureToggle,
+} from '../base';
+import { FeatureDropdownInput } from '../dropdowns';
 
 export const sound_ambience: FeatureToggle = {
   name: 'Enable ambience',
   category: 'SOUND',
+  description: `Ambience refers to the more noticeable ambient sounds that play on occasion.`,
   component: CheckboxInput,
 };
 
@@ -38,7 +45,7 @@ export const sound_instruments: FeatureToggle = {
 export const sound_tts: FeatureChoiced = {
   name: 'Enable TTS',
   category: 'SOUND',
-  description: multiline`
+  description: `
     When enabled, be able to hear text-to-speech sounds in game.
     When set to "Blips", text to speech will be replaced with blip sounds based on the voice.
   `,
@@ -49,7 +56,7 @@ export const sound_tts_volume: Feature<number> = {
   name: 'TTS Volume',
   category: 'SOUND',
   description: 'The volume that the text-to-speech sounds will play at.',
-  component: FeatureNumberInput,
+  component: FeatureSliderInput,
 };
 
 export const sound_jukebox: FeatureToggle = {
@@ -75,6 +82,7 @@ export const sound_midi: FeatureToggle = {
 export const sound_ship_ambience: FeatureToggle = {
   name: 'Enable ship ambience',
   category: 'SOUND',
+  description: `Ship ambience refers to the low ambient buzz that plays on loop.`,
   component: CheckboxInput,
 };
 
@@ -82,4 +90,14 @@ export const sound_elevator: FeatureToggle = {
   name: 'Enable elevator music',
   category: 'SOUND',
   component: CheckboxInput,
+};
+
+export const sound_achievement: FeatureChoiced = {
+  name: 'Achievement unlock sound',
+  category: 'SOUND',
+  description: `
+    The sound that's played when unlocking an achievement.
+    If disabled, no sound will be played.
+  `,
+  component: FeatureDropdownInput,
 };

@@ -73,11 +73,11 @@
 /obj/machinery/computer/pandemic/attack_ai_secondary(mob/user, list/modifiers)
 	return attack_hand_secondary(user, modifiers)
 
-/obj/machinery/computer/pandemic/handle_atom_del(atom/A)
-	if(A == beaker)
+/obj/machinery/computer/pandemic/Exited(atom/movable/gone, direction)
+	. = ..()
+	if(gone == beaker)
 		beaker = null
 		update_appearance()
-	return ..()
 
 /obj/machinery/computer/pandemic/attackby(obj/item/held_item, mob/user, params)
 	//Advanced science! Percision instruments (eg droppers and syringes) are precise enough to modify the loaded sample!
@@ -87,9 +87,9 @@
 			return ..()
 		var/list/modifiers = params2list(params)
 		if(istype(held_item, /obj/item/reagent_containers/syringe) && LAZYACCESS(modifiers, RIGHT_CLICK))
-			held_item.afterattack_secondary(beaker, user, Adjacent(user), params)
+			held_item.interact_with_atom_secondary(beaker, user)
 		else
-			held_item.afterattack(beaker, user, Adjacent(user), params)
+			held_item.interact_with_atom(beaker, user)
 		SStgui.update_uis(src)
 		return TRUE
 
@@ -108,7 +108,7 @@
 	update_appearance()
 	SStgui.update_uis(src)
 
-/obj/machinery/computer/pandemic/on_deconstruction()
+/obj/machinery/computer/pandemic/on_deconstruction(disassembled)
 	eject_beaker()
 	. = ..()
 
@@ -198,7 +198,7 @@
 	if(!istype(adv_disease) || !adv_disease.mutable)
 		to_chat(usr, span_warning("ERROR: Cannot replicate virus strain."))
 		return FALSE
-	use_power(active_power_usage)
+	use_energy(active_power_usage)
 	adv_disease = adv_disease.Copy()
 	var/list/data = list("viruses" = list(adv_disease))
 	var/obj/item/reagent_containers/cup/tube/bottle = new(drop_location())
@@ -220,7 +220,7 @@
  * @returns {boolean} - Success or failure.
  */
 /obj/machinery/computer/pandemic/proc/create_vaccine_bottle(index)
-	use_power(active_power_usage)
+	use_energy(active_power_usage)
 	var/id = index
 	var/datum/disease/disease = SSdisease.archive_diseases[id]
 	var/obj/item/reagent_containers/cup/tube/bottle = new(drop_location())

@@ -31,7 +31,7 @@
 		MiddleClickOn(A, params)
 		return
 	if(LAZYACCESS(modifiers, ALT_CLICK)) // alt and alt-gr (rightalt)
-		AltClickOn(A)
+		A.borg_click_alt(src)
 		return
 	if(LAZYACCESS(modifiers, CTRL_CLICK))
 		CtrlClickOn(A)
@@ -47,11 +47,6 @@
 		return
 
 	face_atom(A) // change direction to face what you clicked on
-
-	if(aicamera.in_camera_mode) //Cyborg picture taking
-		aicamera.toggle_camera_mode(sound = FALSE)
-		aicamera.captureimage(A, usr)
-		return
 
 	var/obj/item/W = get_active_held_item()
 
@@ -84,12 +79,12 @@
 		if(!isturf(loc))
 			return
 
-		// cyborgs are prohibited from using storage items so we can I think safely remove (A.loc && isturf(A.loc.loc))
+		// cyborg rightclick code, allowing borgos to use weapons at range
 		if(CanReach(A,W))
 			W.melee_attack_chain(src, A, params)
 			return
-		if(isturf(A) || isturf(A.loc))
-			W.afterattack(A, src, 0, params)
+		else if(isturf(A) || isturf(A.loc))
+			A.base_ranged_item_interaction(src, W, modifiers)
 
 //Give cyborgs hotkey clicks without breaking existing uses of hotkey clicks
 // for non-doors/apcs
@@ -102,14 +97,11 @@
 /mob/living/silicon/robot/CtrlClickOn(atom/target)
 	target.BorgCtrlClick(src)
 
-/mob/living/silicon/robot/AltClickOn(atom/target)
-	target.BorgAltClick(src)
-
 /atom/proc/BorgCtrlShiftClick(mob/living/silicon/robot/user) //forward to human click if not overridden
-	CtrlShiftClick(user)
+	user.base_click_ctrl_shift(src)
 
 /obj/machinery/door/airlock/BorgCtrlShiftClick(mob/living/silicon/robot/user) // Sets/Unsets Emergency Access Override Forwards to AI code.
-	if(get_dist(src, user) <= user.interaction_range)
+	if(get_dist(src, user) <= user.interaction_range && !(user.control_disabled))
 		AICtrlShiftClick(user)
 	else
 		..()
@@ -118,71 +110,70 @@
 	ShiftClick(user)
 
 /obj/machinery/door/airlock/BorgShiftClick(mob/living/silicon/robot/user)  // Opens and closes doors! Forwards to AI code.
-	if(get_dist(src, user) <= user.interaction_range)
+	if(get_dist(src, user) <= user.interaction_range && !(user.control_disabled))
 		AIShiftClick(user)
 	else
 		..()
 
-
 /atom/proc/BorgCtrlClick(mob/living/silicon/robot/user) //forward to human click if not overridden
-	CtrlClick(user)
+	user.base_click_ctrl(src)
 
 /obj/machinery/door/airlock/BorgCtrlClick(mob/living/silicon/robot/user) // Bolts doors. Forwards to AI code.
-	if(get_dist(src, user) <= user.interaction_range)
+	if(get_dist(src, user) <= user.interaction_range && !(user.control_disabled))
 		AICtrlClick(user)
 	else
 		..()
 
 /obj/machinery/power/apc/BorgCtrlClick(mob/living/silicon/robot/user) // turns off/on APCs. Forwards to AI code.
-	if(get_dist(src, user) <= user.interaction_range)
+	if(get_dist(src, user) <= user.interaction_range && !(user.control_disabled))
 		AICtrlClick(user)
 	else
 		..()
 
 /obj/machinery/power/apc/BorgCtrlShiftClick(mob/living/silicon/robot/user)
-	if(get_dist(src, user) <= user.interaction_range)
+	if(get_dist(src, user) <= user.interaction_range && !(user.control_disabled))
 		AICtrlShiftClick(user)
 	else
 		..()
 
 /obj/machinery/power/apc/BorgShiftClick(mob/living/silicon/robot/user)
-	if(get_dist(src, user) <= user.interaction_range)
+	if(get_dist(src, user) <= user.interaction_range && !(user.control_disabled))
 		AIShiftClick(user)
 	else
 		..()
 
-/obj/machinery/power/apc/BorgAltClick(mob/living/silicon/robot/user)
-	if(get_dist(src, user) <= user.interaction_range)
-		AIAltClick(user)
+/obj/machinery/power/apc/borg_click_alt(mob/living/silicon/robot/user)
+	if(get_dist(src, user) <= user.interaction_range && !(user.control_disabled))
+		ai_click_alt(user)
 	else
 		..()
 
 
 /obj/machinery/power/apc/attack_robot_secondary(mob/living/silicon/user, list/modifiers)
-	if(get_dist(src, user) <= user.interaction_range)
+	if(get_dist(src, user) <= user.interaction_range && !(user.control_disabled))
 		return attack_ai_secondary(user, modifiers)
 	else
 		..()
 
 /obj/machinery/turretid/BorgCtrlClick(mob/living/silicon/robot/user) //turret control on/off. Forwards to AI code.
-	if(get_dist(src, user) <= user.interaction_range)
+	if(get_dist(src, user) <= user.interaction_range && !(user.control_disabled))
 		AICtrlClick(user)
 	else
 		..()
 
-/atom/proc/BorgAltClick(mob/living/silicon/robot/user)
-	AltClick(user)
+/atom/proc/borg_click_alt(mob/living/silicon/robot/user)
+	user.base_click_alt(src)
 	return
 
-/obj/machinery/door/airlock/BorgAltClick(mob/living/silicon/robot/user) // Eletrifies doors. Forwards to AI code.
-	if(get_dist(src, user) <= user.interaction_range)
-		AIAltClick(user)
+/obj/machinery/door/airlock/borg_click_alt(mob/living/silicon/robot/user) // Eletrifies doors. Forwards to AI code.
+	if(get_dist(src, user) <= user.interaction_range && !(user.control_disabled))
+		ai_click_alt(user)
 	else
 		..()
 
-/obj/machinery/turretid/BorgAltClick(mob/living/silicon/robot/user) //turret lethal on/off. Forwards to AI code.
-	if(get_dist(src, user) <= user.interaction_range)
-		AIAltClick(user)
+/obj/machinery/turretid/borg_click_alt(mob/living/silicon/robot/user) //turret lethal on/off. Forwards to AI code.
+	if(get_dist(src, user) <= user.interaction_range && !(user.control_disabled))
+		ai_click_alt(user)
 	else
 		..()
 
@@ -195,7 +186,7 @@
 	change attack_robot() above to the proper function
 */
 /mob/living/silicon/robot/UnarmedAttack(atom/A, proximity_flag, list/modifiers)
-	if(HAS_TRAIT(src, TRAIT_HANDS_BLOCKED))
+	if(!can_unarmed_attack())
 		return
 	A.attack_robot(src)
 

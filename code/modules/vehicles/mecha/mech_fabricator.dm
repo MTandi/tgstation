@@ -28,9 +28,6 @@
 	/// The job ID of the part currently being processed. This is used for ordering list items for the client UI.
 	var/top_job_id = 0
 
-	/// Reference to all materials used in the creation of the item being_built.
-	var/list/build_materials
-
 	/// Part currently stored in the Exofab.
 	var/obj/item/stored_part
 
@@ -53,29 +50,32 @@
 	var/list/datum/design/cached_designs
 
 /obj/machinery/mecha_part_fabricator/Initialize(mapload)
-	if(!CONFIG_GET(flag/no_default_techweb_link) && !stored_research)
-		connect_techweb(SSresearch.science_tech)
-	rmat = AddComponent( \
-		/datum/component/remote_materials, \
-		mapload && link_on_init, \
-		mat_container_flags = BREAKDOWN_FLAGS_LATHE \
-	)
+	rmat = AddComponent(/datum/component/remote_materials, mapload && link_on_init)
 	cached_designs = list()
 	RefreshParts() //Recalculating local material sizes if the fab isn't linked
-	if(stored_research)
-		update_menu_tech()
 	return ..()
+
+/obj/machinery/mecha_part_fabricator/post_machine_initialize()
+	. = ..()
+	if(!CONFIG_GET(flag/no_default_techweb_link) && !stored_research)
+		CONNECT_TO_RND_SERVER_ROUNDSTART(stored_research, src)
+	if(stored_research)
+		on_connected_techweb()
 
 /obj/machinery/mecha_part_fabricator/proc/connect_techweb(datum/techweb/new_techweb)
 	if(stored_research)
 		UnregisterSignal(stored_research, list(COMSIG_TECHWEB_ADD_DESIGN, COMSIG_TECHWEB_REMOVE_DESIGN))
-
 	stored_research = new_techweb
+	if(!isnull(stored_research))
+		on_connected_techweb()
+
+/obj/machinery/mecha_part_fabricator/proc/on_connected_techweb()
 	RegisterSignals(
 		stored_research,
 		list(COMSIG_TECHWEB_ADD_DESIGN, COMSIG_TECHWEB_REMOVE_DESIGN),
 		PROC_REF(on_techweb_update)
 	)
+	update_menu_tech()
 
 /obj/machinery/mecha_part_fabricator/multitool_act(mob/living/user, obj/item/multitool/tool)
 	if(!QDELETED(tool.buffer) && istype(tool.buffer, /datum/techweb))
@@ -127,14 +127,12 @@
 	if(panel_open)
 		. += span_notice("Alt-click to rotate the output direction.")
 
-/obj/machinery/mecha_part_fabricator/AltClick(mob/user)
-	. = ..()
-	if(!user.can_perform_action(src))
-		return
-	if(panel_open)
-		dir = turn(dir, -90)
-		balloon_alert(user, "rotated to [dir2text(dir)].")
-		return TRUE
+/obj/machinery/mecha_part_fabricator/click_alt(mob/user)
+	if(!panel_open)
+		return CLICK_ACTION_BLOCKING
+	dir = turn(dir, -90)
+	balloon_alert(user, "rotated to [dir2text(dir)].")
+	return CLICK_ACTION_SUCCESS
 
 /**
  * Updates the `final_sets` and `buildable_parts` for the current mecha fabricator.
@@ -221,12 +219,11 @@
 			say("Not enough resources. Processing stopped.")
 		return FALSE
 
-	materials.use_materials(D.materials, component_coeff)
+	rmat.use_materials(D.materials, component_coeff, 1, "built", "[D.name]")
 	being_built = D
 	build_finish = world.time + get_construction_time_w_coeff(initial(D.construction_time))
 	build_start = world.time
 	desc = "It's building \a [D.name]."
-	rmat.silo_log(src, "built", -1, "[D.name]", build_materials)
 
 	return TRUE
 
@@ -263,22 +260,23 @@
  *
  * Returns FALSE is the machine cannot dispense the part on the appropriate turf.
  * Return TRUE if the part was successfully dispensed.
- * * D - Design datum to attempt to dispense.
+ * * dispensed_design - Design datum to attempt to dispense.
  */
-/obj/machinery/mecha_part_fabricator/proc/dispense_built_part(datum/design/D)
-	var/obj/item/I = new D.build_path(src)
+/obj/machinery/mecha_part_fabricator/proc/dispense_built_part(datum/design/dispensed_design)
+	var/obj/item/built_part = new dispensed_design.build_path(src)
+	SSblackbox.record_feedback("nested tally", "lathe_printed_items", 1, list("[type]", "[built_part.type]"))
 
 	being_built = null
 
 	var/turf/exit = get_step(src,(dir))
 	if(exit.density)
 		say("Error! The part outlet is obstructed.")
-		desc = "It's trying to dispense the fabricated [D.name], but the part outlet is obstructed."
-		stored_part = I
+		desc = "It's trying to dispense the fabricated [dispensed_design.name], but the part outlet is obstructed."
+		stored_part = built_part
 		return FALSE
 
-	say("The fabrication of [I] is now complete.")
-	I.forceMove(exit)
+	say("The fabrication of [built_part] is now complete.")
+	built_part.forceMove(exit)
 
 	top_job_id += 1
 
@@ -400,9 +398,6 @@
 
 	. = TRUE
 
-	add_fingerprint(usr)
-	usr.set_machine(src)
-
 	switch(action)
 		if("build")
 			var/designs = params["designs"]
@@ -478,7 +473,7 @@
 /obj/machinery/mecha_part_fabricator/proc/AfterMaterialInsert(item_inserted, id_inserted, amount_inserted)
 	var/datum/material/M = id_inserted
 	add_overlay("fab-load-[M.name]")
-	addtimer(CALLBACK(src, TYPE_PROC_REF(/atom, cut_overlay), "fab-load-[M.name]"), 10)
+	addtimer(CALLBACK(src, TYPE_PROC_REF(/atom, cut_overlay), "fab-load-[M.name]"), 1 SECONDS)
 
 /obj/machinery/mecha_part_fabricator/screwdriver_act(mob/living/user, obj/item/I)
 	if(..())
@@ -495,16 +490,6 @@
 		to_chat(user, span_warning("\The [src] is currently processing! Please wait until completion."))
 		return FALSE
 	return default_deconstruction_crowbar(I)
-
-/obj/machinery/mecha_part_fabricator/proc/is_insertion_ready(mob/user)
-	if(panel_open)
-		to_chat(user, span_warning("You can't load [src] while it's opened!"))
-		return FALSE
-	if(being_built)
-		to_chat(user, span_warning("\The [src] is currently processing! Please wait until completion."))
-		return FALSE
-
-	return TRUE
 
 /obj/machinery/mecha_part_fabricator/maint
 	link_on_init = FALSE

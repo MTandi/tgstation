@@ -36,8 +36,8 @@
 	if(!multitool_check_buffer(user, tool))
 		return
 	var/obj/item/multitool/multitool = tool
-	multitool.buffer = src
-	to_chat(user, span_notice("You save the data in the [multitool.name]'s buffer."))
+	multitool.set_buffer(src)
+	balloon_alert(user, "saved to multitool buffer")
 	return TRUE
 
 /obj/machinery/mechpad/wirecutter_act(mob/living/user, obj/item/tool)
@@ -60,7 +60,7 @@
 		"style" = STYLE_SEETHROUGH,
 		"reverse_dropoff_coords" = list(reverse_turf.x, reverse_turf.y, reverse_turf.z)
 	))
-	use_power(active_power_usage)
+	use_energy(active_power_usage)
 
 /obj/structure/closet/supplypod/mechpod
 	style = STYLE_SEETHROUGH

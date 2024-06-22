@@ -1,7 +1,16 @@
 import { decodeHtmlEntities } from 'common/string';
+
 import { BooleanLike } from '../../common/react';
 import { useBackend } from '../backend';
-import { BlockQuote, Box, Button, LabeledList, NoticeBox, Section, Stack } from '../components';
+import {
+  BlockQuote,
+  Box,
+  Button,
+  LabeledList,
+  NoticeBox,
+  Section,
+  Stack,
+} from '../components';
 import { Window } from '../layouts';
 
 type Data = {
@@ -30,8 +39,8 @@ type Pai = {
   range: number;
 };
 
-export const PaiCard = (props, context) => {
-  const { data } = useBackend<Data>(context);
+export const PaiCard = (props) => {
+  const { data } = useBackend<Data>();
   const { pai } = data;
 
   return (
@@ -44,8 +53,8 @@ export const PaiCard = (props, context) => {
 };
 
 /** Gives a list of candidates as cards */
-const PaiDownload = (props, context) => {
-  const { act, data } = useBackend<Data>(context);
+const PaiDownload = (props) => {
+  const { act, data } = useBackend<Data>();
   const { candidates = [] } = data;
 
   return (
@@ -61,7 +70,8 @@ const PaiDownload = (props, context) => {
                 color="good"
                 icon="bell"
                 onClick={() => act('request')}
-                tooltip="Request more candidates from beyond.">
+                tooltip="Request more candidates from beyond."
+              >
                 Request
               </Button>
             </Stack.Item>
@@ -82,11 +92,8 @@ const PaiDownload = (props, context) => {
 /**
  * Renders a custom section that displays a candidate.
  */
-const CandidateDisplay = (
-  props: { candidate: Candidate; index: number },
-  context
-) => {
-  const { act } = useBackend<Data>(context);
+const CandidateDisplay = (props: { candidate: Candidate; index: number }) => {
+  const { act } = useBackend<Data>();
   const {
     candidate: { comments, ckey, description, name },
     index,
@@ -100,7 +107,8 @@ const CandidateDisplay = (
         </Button>
       }
       overflow="hidden"
-      title={`Candidate ${index}`}>
+      title={`Candidate ${index}`}
+    >
       <Stack vertical>
         <Stack.Item>
           <Box color="label" mb={1}>
@@ -140,8 +148,8 @@ const CandidateDisplay = (
 };
 
 /** Once a pAI has been loaded, you can alter its settings here */
-const PaiOptions = (props, context) => {
-  const { act, data } = useBackend<Data>(context);
+const PaiOptions = (props) => {
+  const { act, data } = useBackend<Data>();
   const {
     range_max,
     range_min,
@@ -181,34 +189,40 @@ const PaiOptions = (props, context) => {
           <Button
             icon={can_holo ? 'toggle-on' : 'toggle-off'}
             onClick={() => act('toggle_holo')}
-            selected={can_holo}>
+            selected={can_holo}
+          >
             Toggle
           </Button>
         </LabeledList.Item>
         <LabeledList.Item label="Holoform Range">
-          <Stack>
-            <Stack.Item>
-              <Button
-                icon="fa-circle-minus"
-                onClick={() => act('decrease_range')}
-                disabled={range === range_min}
-              />
-            </Stack.Item>
-            <Stack.Item mt={0.5}>{range}</Stack.Item>
-            <Stack.Item>
-              <Button
-                icon="fa-circle-plus"
-                onClick={() => act('increase_range')}
-                disabled={range === range_max}
-              />
-            </Stack.Item>
-          </Stack>
+          {emagged ? (
+            '∞'
+          ) : (
+            <Stack>
+              <Stack.Item>
+                <Button
+                  icon="fa-circle-minus"
+                  onClick={() => act('decrease_range')}
+                  disabled={range === range_min}
+                />
+              </Stack.Item>
+              <Stack.Item mt={0.5}>{range}</Stack.Item>
+              <Stack.Item>
+                <Button
+                  icon="fa-circle-plus"
+                  onClick={() => act('increase_range')}
+                  disabled={range === range_max}
+                />
+              </Stack.Item>
+            </Stack>
+          )}
         </LabeledList.Item>
         <LabeledList.Item label="Transmit">
           <Button
             icon={transmit ? 'toggle-on' : 'toggle-off'}
             onClick={() => act('toggle_radio', { option: 'transmit' })}
-            selected={transmit}>
+            selected={transmit}
+          >
             Toggle
           </Button>
         </LabeledList.Item>
@@ -216,7 +230,8 @@ const PaiOptions = (props, context) => {
           <Button
             icon={receive ? 'toggle-on' : 'toggle-off'}
             onClick={() => act('toggle_radio', { option: 'receive' })}
-            selected={receive}>
+            selected={receive}
+          >
             Toggle
           </Button>
         </LabeledList.Item>
@@ -239,8 +254,9 @@ const PaiOptions = (props, context) => {
           color="bad"
           icon="bug"
           mt={1}
-          onClick={() => act('reset_software')}>
-          Malicious Software Detected
+          onClick={() => act('reset_software')}
+        >
+          Reset Software
         </Button>
       )}
     </Section>
