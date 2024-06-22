@@ -88,6 +88,7 @@
 	strip_delay = 60
 	armor_type = /datum/armor/captain_gloves
 	resistance_flags = NONE
+	clothing_traits = list(TRAIT_FAST_CUFFING)
 
 /datum/armor/captain_gloves
 	bio = 90
@@ -102,7 +103,7 @@
 	greyscale_colors = null
 	siemens_coefficient = 0.3
 	armor_type = /datum/armor/latex_gloves
-	clothing_traits = list(TRAIT_QUICK_CARRY, TRAIT_FINGERPRINT_PASSTHROUGH)
+	clothing_traits = list(TRAIT_QUICK_CARRY)
 	resistance_flags = NONE
 
 /datum/armor/latex_gloves
@@ -122,6 +123,7 @@
 	icon_state = "latex_black"
 	inhand_icon_state = "greyscale_gloves"
 	greyscale_colors = "#15191a"
+	clothing_traits = list(TRAIT_QUICK_CARRY, TRAIT_FASTMED)
 
 /obj/item/clothing/gloves/latex/coroner/add_blood_DNA(list/blood_DNA_to_add)
 	return FALSE

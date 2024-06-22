@@ -2,9 +2,10 @@
 	page_holder.give_screen_object(
 		new /atom/movable/screen/escape_menu/home_button(
 			null,
+			/* hud_owner = */ src,
 			src,
 			"Resume",
-			/* offset = */ 0,
+			/* offset = */ 1,
 			CALLBACK(src, PROC_REF(home_resume)),
 		)
 	)
@@ -12,9 +13,10 @@
 	page_holder.give_screen_object(
 		new /atom/movable/screen/escape_menu/home_button(
 			null,
+			/* hud_owner = */ null,
 			src,
 			"Settings",
-			/* offset = */ 1,
+			/* offset = */ 2,
 			CALLBACK(src, PROC_REF(home_open_settings)),
 		)
 	)
@@ -22,18 +24,20 @@
 	page_holder.give_screen_object(
 		new /atom/movable/screen/escape_menu/home_button/admin_help(
 			null,
+			/* hud_owner = */ src,
 			src,
 			"Admin Help",
-			/* offset = */ 2,
+			/* offset = */ 3,
 		)
 	)
 
 	page_holder.give_screen_object(
 		new /atom/movable/screen/escape_menu/home_button/leave_body(
 			null,
+			/* hud_owner = */ src,
 			src,
 			"Leave Body",
-			/* offset = */ 3,
+			/* offset = */ 4,
 			CALLBACK(src, PROC_REF(open_leave_body)),
 		)
 	)
@@ -55,6 +59,7 @@
 
 /atom/movable/screen/escape_menu/home_button/Initialize(
 	mapload,
+	datum/hud/hud_owner,
 	datum/escape_menu/escape_menu,
 	button_text,
 	offset,
@@ -67,6 +72,7 @@
 
 	home_button_text = new /atom/movable/screen/escape_menu/home_button_text(
 		src,
+		/* hud_owner = */ src,
 		button_text,
 	)
 
@@ -77,7 +83,7 @@
 
 /atom/movable/screen/escape_menu/home_button/Destroy()
 	escape_menu = null
-	QDEL_NULL(on_click_callback)
+	on_click_callback = null
 
 	return ..()
 
@@ -109,7 +115,7 @@
 		button_text
 		hovered = FALSE
 
-/atom/movable/screen/escape_menu/home_button_text/Initialize(mapload, button_text)
+/atom/movable/screen/escape_menu/home_button_text/Initialize(mapload, datum/hud/hud_owner, button_text)
 	. = ..()
 
 	src.button_text = button_text

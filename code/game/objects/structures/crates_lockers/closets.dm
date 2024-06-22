@@ -1,5 +1,9 @@
 #define LOCKER_FULL -1
 
+///A comprehensive list of all closets (NOT CRATES) in the game world
+GLOBAL_LIST_EMPTY(roundstart_station_closets)
+
+
 /obj/structure/closet
 	name = "closet"
 	desc = "It's a basic storage unit."
@@ -15,19 +19,20 @@
 	contents_pressure_protection = 0
 	/// How insulated the thing is, for the purposes of calculating body temperature. Must be between 0 and 1!
 	contents_thermal_insulation = 0
+	pass_flags_self = PASSSTRUCTURE | LETPASSCLICKS
 
 	/// The overlay for the closet's door
 	var/obj/effect/overlay/closet_door/door_obj
 	/// Whether or not this door is being animated
 	var/is_animating_door = FALSE
 	/// Vertical squish of the door
-	var/door_anim_squish = 0.12
+	var/door_anim_squish = 0.2
 	/// The maximum angle the door will be drawn at
-	var/door_anim_angle = 136
-	/// X position of the closet door hinge
+	var/door_anim_angle = 140
+	/// X position of the closet door hinge, relative to the center of the sprite
 	var/door_hinge_x = -6.5
 	/// Amount of time it takes for the door animation to play
-	var/door_anim_time = 1.5 // set to 0 to make the door not animate at all
+	var/door_anim_time = 2 // set to 0 to make the door not animate at all
 	/// Paint jobs for this closet, crates are a subtype of closet so they override these values
 	var/list/paint_jobs = TRUE
 	/// Controls whether a door overlay should be applied using the icon_door value as the icon state
@@ -60,6 +65,7 @@
 	var/delivery_icon = "deliverycloset" //which icon to use when packagewrapped. null to be unwrappable.
 	var/anchorable = TRUE
 	var/icon_welded = "welded"
+	var/icon_broken = "sparking"
 	/// Whether a skittish person can dive inside this closet. Disable if opening the closet causes "bad things" to happen or that it leads to a logical inconsistency.
 	var/divable = TRUE
 	/// true whenever someone with the strong pull component (or magnet modsuit module) is dragging this, preventing opening
@@ -68,15 +74,30 @@
 	var/secure = FALSE
 	var/can_install_electronics = TRUE
 
+	var/is_maploaded = FALSE
+
 	var/contents_initialized = FALSE
 	/// is this closet locked by an exclusive id, i.e. your own personal locker
 	var/datum/weakref/id_card = null
-	/// should we prevent furthur access change
+	/// should we prevent further access change
 	var/access_locked = FALSE
 	/// is the card reader installed in this machine
 	var/card_reader_installed = FALSE
 	/// access types for card reader
 	var/list/access_choices = TRUE
+
+	/// Whether this closet is sealed or not. If sealed, it'll have its own internal air
+	var/sealed = FALSE
+
+	/// Internal gas for this closet.
+	var/datum/gas_mixture/internal_air
+	/// Volume of the internal air
+	var/air_volume = TANK_STANDARD_VOLUME * 3
+
+	/// How many pixels the closet can shift on the x axis when shaking
+	var/x_shake_pixel_shift = 2
+	/// how many pixels the closet can shift on the y axes when shaking
+	var/y_shake_pixel_shift = 1
 
 /datum/armor/structure_closet
 	melee = 20
@@ -89,7 +110,9 @@
 /obj/structure/closet/Initialize(mapload)
 	. = ..()
 
-	var/static/list/closet_paint_jobs = list(
+	var/static/list/closet_paint_jobs
+	if(isnull(closet_paint_jobs))
+		closet_paint_jobs = list(
 		"Cargo" = list("icon_state" = "qm"),
 		"Engineering" = list("icon_state" = "ce"),
 		"Engineering Secure" = list("icon_state" = "eng_secure"),
@@ -107,17 +130,27 @@
 	if(paint_jobs)
 		paint_jobs = closet_paint_jobs
 
+	var/static/list/card_reader_choices
+	if(isnull(card_reader_choices))
+		card_reader_choices = list(
+			"Personal",
+			"Departmental",
+			"None"
+			)
 	if(access_choices)
-		var/static/list/choices = list("Personal", "Departmental", "None")
-		access_choices = choices
+		access_choices = card_reader_choices
+
+	if(is_station_level(z) && mapload)
+		add_to_roundstart_list()
 
 	// if closed, any item at the crate's loc is put in the contents
-	if (mapload && !opened)
-		. = INITIALIZE_HINT_LATELOAD
+	if (mapload)
+		is_maploaded = TRUE
+	. = INITIALIZE_HINT_LATELOAD
 
 	populate_contents_immediate()
 	var/static/list/loc_connections = list(
-		COMSIG_CARBON_DISARM_COLLIDE = PROC_REF(locker_carbon),
+		COMSIG_LIVING_DISARM_COLLIDE = PROC_REF(locker_living),
 		COMSIG_ATOM_MAGICALLY_UNLOCKED = PROC_REF(on_magic_unlock),
 	)
 	AddElement(/datum/element/connect_loc, loc_connections)
@@ -130,9 +163,22 @@
 	update_appearance()
 
 /obj/structure/closet/LateInitialize()
-	. = ..()
-	if(!opened)
+	if(!opened && is_maploaded)
 		take_contents()
+
+	if(sealed)
+		var/datum/gas_mixture/external_air = loc.return_air()
+		if(external_air && is_maploaded)
+			internal_air = external_air.copy()
+		else
+			internal_air = new()
+		START_PROCESSING(SSobj, src)
+
+/obj/structure/closet/return_air()
+	if(sealed)
+		return internal_air
+	else
+		return ..()
 
 //USE THIS TO FILL IT, NOT INITIALIZE OR NEW
 /obj/structure/closet/proc/PopulateContents()
@@ -145,8 +191,24 @@
 
 /obj/structure/closet/Destroy()
 	id_card = null
+	QDEL_NULL(internal_air)
 	QDEL_NULL(door_obj)
+	GLOB.roundstart_station_closets -= src
 	return ..()
+
+/obj/structure/closet/process(seconds_per_tick)
+	if(!sealed)
+		return PROCESS_KILL
+	process_internal_air(seconds_per_tick)
+
+/obj/structure/closet/proc/process_internal_air(seconds_per_tick)
+	if(opened)
+		var/datum/gas_mixture/current_exposed_air = loc.return_air()
+		if(!current_exposed_air)
+			return
+		if(current_exposed_air.equalize(internal_air))
+			var/turf/location = get_turf(src)
+			location.air_update_turf()
 
 /obj/structure/closet/update_appearance(updates=ALL)
 	. = ..()
@@ -181,6 +243,11 @@
 
 	if(welded)
 		. += icon_welded
+
+	if(broken && secure)
+		. += mutable_appearance(icon, icon_broken, alpha = alpha)
+		. += emissive_appearance(icon, icon_broken, src, alpha = alpha)
+		return
 
 	if(broken || !secure)
 		return
@@ -270,7 +337,7 @@
 	if(anchorable && !anchored)
 		. += span_notice("It can be [EXAMINE_HINT("bolted")] to the ground.")
 	if(anchored)
-		. += span_notice("Its [EXAMINE_HINT("bolted")] to the ground.")
+		. += span_notice("It's [anchorable ? EXAMINE_HINT("bolted") : "attached firmly"] to the ground.")
 	if(length(paint_jobs))
 		. += span_notice("It can be [EXAMINE_HINT("painted")] another texture.")
 	if(HAS_TRAIT(user, TRAIT_SKITTISH) && divable)
@@ -282,7 +349,7 @@
 		else
 			. += span_notice("Its airlock electronics are [EXAMINE_HINT("screwed")] in place.")
 		if(!card_reader_installed && length(access_choices))
-			. += span_notice("You can install a card reader for furthur access control.")
+			. += span_notice("You can install a card reader for further access control.")
 		else if(card_reader_installed)
 			. += span_notice("The card reader could be [EXAMINE_HINT("pried")] out.")
 			. += span_notice("Swipe your PDA with an ID card/Just ID to change access levels.")
@@ -299,9 +366,10 @@
 			context[SCREENTIP_CONTEXT_LMB] = opened ? "Close" : "Open"
 		screentip_change = TRUE
 
-	if(istype(held_item) && held_item.tool_behaviour == TOOL_WELDER)
+	if(istype(held_item, cutting_tool))
 		if(opened)
 			context[SCREENTIP_CONTEXT_LMB] = "Deconstruct"
+			screentip_change = TRUE
 		else
 			if(!welded && can_weld_shut)
 				context[SCREENTIP_CONTEXT_LMB] = "Weld"
@@ -310,11 +378,11 @@
 				context[SCREENTIP_CONTEXT_LMB] = "Unweld"
 				screentip_change = TRUE
 
-	if(istype(held_item) && held_item.tool_behaviour == TOOL_WRENCH)
+	if(istype(held_item) && held_item.tool_behaviour == TOOL_WRENCH && anchorable)
 		context[SCREENTIP_CONTEXT_RMB] = anchored ? "Unanchor" : "Anchor"
 		screentip_change = TRUE
 
-	if(!locked && (welded || !can_weld_shut))
+	if(!locked && !opened && (welded || !can_weld_shut))
 		if(!secure)
 			if(!broken && can_install_electronics && istype(held_item, /obj/item/electronics/airlock))
 				context[SCREENTIP_CONTEXT_LMB] = "Install Electronics"
@@ -512,25 +580,26 @@
 	else
 		return open(user)
 
-/obj/structure/closet/deconstruct(disassembled = TRUE)
-	if (!(flags_1 & NODECONSTRUCT_1))
-		if(ispath(material_drop) && material_drop_amount)
-			new material_drop(loc, material_drop_amount)
-		if (secure)
-			var/obj/item/electronics/airlock/electronics = new(drop_location())
-			if(length(req_one_access))
-				electronics.one_access = TRUE
-				electronics.accesses = req_one_access
-			else
-				electronics.accesses = req_access
-		if(card_reader_installed)
-			new /obj/item/stock_parts/card_reader(drop_location())
+/obj/structure/closet/handle_deconstruct(disassembled)
 	dump_contents()
-	qdel(src)
+	if(obj_flags & NO_DEBRIS_AFTER_DECONSTRUCTION)
+		return
+
+	if(ispath(material_drop) && material_drop_amount)
+		new material_drop(loc, material_drop_amount)
+	if (secure)
+		var/obj/item/electronics/airlock/electronics = new(drop_location())
+		if(length(req_one_access))
+			electronics.one_access = TRUE
+			electronics.accesses = req_one_access
+		else
+			electronics.accesses = req_access
+	if(card_reader_installed)
+		new /obj/item/stock_parts/card_reader(drop_location())
 
 /obj/structure/closet/atom_break(damage_flag)
 	. = ..()
-	if(!broken && !(flags_1 & NODECONSTRUCT_1))
+	if(!broken)
 		bust_open()
 
 /obj/structure/closet/CheckParts(list/parts_list)
@@ -575,7 +644,7 @@
 
 /// check if we can install airlock electronics in this closet
 /obj/structure/closet/proc/can_install_airlock_electronics(mob/user)
-	if(secure || !can_install_electronics || !(welded || !can_weld_shut))
+	if(secure || !can_install_electronics || opened)
 		return FALSE
 
 	if(broken)
@@ -590,9 +659,11 @@
 
 /// check if we can unscrew airlock electronics from this closet
 /obj/structure/closet/proc/can_unscrew_airlock_electronics(mob/user)
-	if(!secure || !(welded || !can_weld_shut))
+	if(!secure || opened)
 		return FALSE
-
+	if(card_reader_installed)
+		balloon_alert(user, "attached to reader!")
+		return FALSE
 	if(locked)
 		balloon_alert(user, "unlock first!")
 		return FALSE
@@ -601,7 +672,7 @@
 
 /// check if we can install card reader in this closet
 /obj/structure/closet/proc/can_install_card_reader(mob/user)
-	if(card_reader_installed || !can_install_electronics || !length(access_choices) || !(welded || !can_weld_shut))
+	if(card_reader_installed || !can_install_electronics || !length(access_choices) || opened)
 		return FALSE
 
 	if(broken)
@@ -620,7 +691,7 @@
 
 /// check if we can pry out the card reader from this closet
 /obj/structure/closet/proc/can_pryout_card_reader(mob/user)
-	if(!card_reader_installed || !(welded || !can_weld_shut))
+	if(!card_reader_installed || opened)
 		return FALSE
 
 	if(locked)
@@ -629,7 +700,7 @@
 
 	return TRUE
 
-/// returns TRUE if attackBy call shouldn't be continued (because tool weaponas used/closet weaponas of weaponrong type), FALSE if otherweaponise
+/// returns TRUE if attackBy call shouldn't be continued (because tool was used/closet was of wrong type), FALSE if otherwise
 /obj/structure/closet/proc/tool_interact(obj/item/weapon, mob/living/user)
 	. = TRUE
 	var/obj/item/card/id/id = null
@@ -726,11 +797,11 @@
 
 		id_card = null
 		switch(choice)
-			if("Personal") //only the player weaponho sweaponiped their id has access.
+			if("Personal") //only the player who swiped their id has access.
 				id_card = WEAKREF(id)
 				name = "[id.registered_name] locker"
 				desc = "now owned by [id.registered_name]. [initial(desc)]"
-			if("Departmental") //anyone weaponho has the same access permissions as this id has access
+			if("Departmental") //anyone who has the same access permissions as this id has access
 				name = "[id.assignment] closet"
 				desc = "Its a [id.assignment] closet. [initial(desc)]"
 				set_access(id.GetAccess())
@@ -779,7 +850,7 @@
 	else if(opened)
 		if(istype(weapon, cutting_tool))
 			if(weapon.tool_behaviour == TOOL_WELDER)
-				if(!weapon.tool_start_check(user, amount=0))
+				if(!weapon.tool_start_check(user, amount=1))
 					return
 
 				to_chat(user, span_notice("You begin cutting \the [src] apart..."))
@@ -787,22 +858,22 @@
 					if(!opened)
 						return
 					user.visible_message(span_notice("[user] slices apart \the [src]."),
-									span_notice("You cut \the [src] apart weaponith \the [weapon]."),
-									span_hear("You hear weaponelding."))
+									span_notice("You cut \the [src] apart with \the [weapon]."),
+									span_hear("You hear welding."))
 					deconstruct(TRUE)
 				return
-			else // for example cardboard box is cut weaponith weaponirecutters
+			else // for example cardboard box is cut with wirecutters
 				user.visible_message(span_notice("[user] cut apart \the [src]."), \
-									span_notice("You cut \the [src] apart weaponith \the [weapon]."))
+									span_notice("You cut \the [src] apart with \the [weapon]."))
 				deconstruct(TRUE)
 				return
 		if (user.combat_mode)
 			return
-		if(user.transferItemToLoc(weapon, drop_location())) // so weapone put in unlit weaponelder too
+		if(user.transferItemToLoc(weapon, drop_location())) // so we put in unlit welder too
 			return
 
 	else if(weapon.tool_behaviour == TOOL_WELDER && can_weld_shut)
-		if(!weapon.tool_start_check(user, amount=0))
+		if(!weapon.tool_start_check(user, amount=1))
 			return
 
 		if(weapon.use_tool(src, user, 40, volume=50))
@@ -819,7 +890,7 @@
 	else if(!user.combat_mode)
 		var/item_is_id = weapon.GetID()
 		if(!item_is_id)
-			return
+			return FALSE
 		if((item_is_id || !toggle(user)) && !opened)
 			togglelock(user)
 	else
@@ -840,12 +911,8 @@
 /obj/structure/closet/proc/after_weld(weld_state)
 	return
 
-/obj/structure/closet/MouseDrop_T(atom/movable/O, mob/living/user)
+/obj/structure/closet/mouse_drop_receive(atom/movable/O, mob/living/user, params)
 	if(!istype(O) || O.anchored || istype(O, /atom/movable/screen))
-		return
-	if(!istype(user) || user.incapacitated() || user.body_position == LYING_DOWN)
-		return
-	if(!Adjacent(user) || !user.Adjacent(O))
 		return
 	if(user == O) //try to climb onto it
 		return ..()
@@ -880,7 +947,6 @@
 			log_combat(user, O, "stuffed", addition = "inside of [src]")
 	else
 		O.forceMove(T)
-	return 1
 
 /obj/structure/closet/relaymove(mob/living/user, direction)
 	if(user.stat || !isturf(loc))
@@ -922,7 +988,7 @@
 // tk grab then use on self
 /obj/structure/closet/attack_self_tk(mob/user)
 	if(attack_hand(user))
-		return COMPONENT_CANCEL_ATTACK_CHAIN
+		return ITEM_INTERACT_BLOCKING
 
 /obj/structure/closet/verb/verb_toggleopen()
 	set src in view(1)
@@ -967,6 +1033,9 @@
 	user.visible_message(span_warning("[src] begins to shake violently!"), \
 		span_notice("You lean on the back of [src] and start pushing the door open... (this will take about [DisplayTimeText(breakout_time)].)"), \
 		span_hear("You hear banging from [src]."))
+
+	addtimer(CALLBACK(src, PROC_REF(check_if_shake)), 1 SECONDS)
+
 	if(do_after(user,(breakout_time), target = src))
 		if(!user || user.stat != CONSCIOUS || user.loc != src || opened || (!locked && !welded) )
 			return
@@ -981,6 +1050,23 @@
 /obj/structure/closet/relay_container_resist_act(mob/living/user, obj/container)
 	container.container_resist_act()
 
+/// Check if someone is still resisting inside, and choose to either keep shaking or stop shaking the closet
+/obj/structure/closet/proc/check_if_shake()
+	// Assuming we decide to shake again, how long until we check to shake again
+	var/next_check_time = 1 SECONDS
+
+	// How long we shake between different calls of Shake(), so that it starts shaking and stops, instead of a steady shake
+	var/shake_duration =  0.3 SECONDS
+
+	for(var/mob/living/mob in contents)
+		if(DOING_INTERACTION_WITH_TARGET(mob, src))
+			// Shake and queue another check_if_shake
+			Shake(x_shake_pixel_shift, y_shake_pixel_shift, shake_duration, shake_interval = 0.1 SECONDS)
+			addtimer(CALLBACK(src, PROC_REF(check_if_shake)), next_check_time)
+			return TRUE
+
+	// If we reach here, nobody is resisting, so dont shake
+	return FALSE
 
 /obj/structure/closet/proc/bust_open()
 	SIGNAL_HANDLER
@@ -999,6 +1085,17 @@
 		togglelock(user)
 		return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
 
+/**
+ * returns TRUE if the closet is allowed to unlock
+ * * user: the player trying to unlock this closet
+ * * player_id: the id of the player trying to unlock this closet
+ * * registered_id: the id registered to this closet, null if no one registered
+ */
+/obj/structure/closet/proc/can_unlock(mob/living/user, obj/item/card/id/player_id, obj/item/card/id/registered_id)
+	if(isnull(registered_id))
+		return allowed(user)
+	return player_id == registered_id
+
 /obj/structure/closet/proc/togglelock(mob/living/user, silent)
 	if(!secure || broken)
 		return
@@ -1006,7 +1103,7 @@
 	if(locked) //only apply checks while unlocking else allow anyone to lock it
 		var/error_msg = ""
 		if(!isnull(id_card))
-			var/obj/item/card/id/advanced/prisoner/registered_id = id_card.resolve()
+			var/obj/item/card/id/registered_id = id_card.resolve()
 			if(!registered_id) //id was deleted at some point. make this closet public access again
 				name = initial(name)
 				desc = initial(desc)
@@ -1015,9 +1112,9 @@
 				req_one_access = null
 				togglelock(user, silent)
 				return
-			if(registered_id !=  user.get_idcard())
+			if(!can_unlock(user, user.get_idcard(), registered_id))
 				error_msg = "not your locker!"
-		else if(!allowed(user)) //allow anyone to lock the closet for safe keeping but apply checks only when unlocking
+		else if(!can_unlock(user, user.get_idcard()))
 			error_msg = "access denied!"
 		if(error_msg)
 			if(!silent)
@@ -1027,21 +1124,22 @@
 	if(iscarbon(user))
 		add_fingerprint(user)
 	locked = !locked
-	user.visible_message(span_notice("[user] [locked ? "locks" : "unlocks"][src]."),
-				span_notice("You [locked ? "locked" : "unlocked"] [src]."))
+	user.visible_message(
+		span_notice("[user] [locked ? "locks" : "unlocks"] [src]."),
+		span_notice("You [locked ? "locked" : "unlocked"] [src]."),
+	)
 	update_appearance()
 
-
-/obj/structure/closet/emag_act(mob/user)
+/obj/structure/closet/emag_act(mob/user, obj/item/card/emag/emag_card)
 	if(secure && !broken)
-		if(user)
-			user.visible_message(span_warning("Sparks fly from [src]!"),
-							span_warning("You scramble [src]'s lock, breaking it open!"),
-							span_hear("You hear a faint electrical spark."))
+		visible_message(span_warning("Sparks fly from [src]!"), blind_message = span_hear("You hear a faint electrical spark."))
+		balloon_alert(user, "lock broken open")
 		playsound(src, SFX_SPARKS, 50, TRUE, SHORT_RANGE_SOUND_EXTRARANGE)
 		broken = TRUE
 		locked = FALSE
 		update_appearance()
+		return TRUE
+	return FALSE
 
 /obj/structure/closet/get_remote_view_fullscreens(mob/user)
 	if(user.stat == DEAD || !(user.sight & (SEEOBJS|SEEMOBS)))
@@ -1084,11 +1182,11 @@
 /obj/structure/closet/return_temperature()
 	return
 
-/obj/structure/closet/proc/locker_carbon(datum/source, mob/living/carbon/shover, mob/living/carbon/target, shove_blocked)
+/obj/structure/closet/proc/locker_living(datum/source, mob/living/shover, mob/living/target, shove_flags, obj/item/weapon)
 	SIGNAL_HANDLER
 	if(!opened && (locked || welded)) //Yes this could be less code, no I don't care
 		return
-	if(!opened && !shove_blocked)
+	if(!opened && ((shove_flags & SHOVE_KNOCKDOWN_BLOCKED) || !(shove_flags & SHOVE_BLOCKED)))
 		return
 	var/was_opened = opened
 	if(!toggle())
@@ -1098,21 +1196,15 @@
 	else
 		target.Knockdown(SHOVE_KNOCKDOWN_SOLID)
 	update_icon()
-	if(target == shover)
-		target.visible_message(span_danger("[target.name] shoves [target.p_them()]self into [src]!"),
-			null,
-			span_hear("You hear shuffling followed by a loud thud!"), COMBAT_MESSAGE_RANGE, shover)
-		to_chat(shover, span_notice("You shove yourself into [src]!"))
-	else
-		target.visible_message(span_danger("[shover.name] shoves [target.name] into [src]!"),
-			span_userdanger("You're shoved into [src] by [shover.name]!"),
-			span_hear("You hear aggressive shuffling followed by a loud thud!"), COMBAT_MESSAGE_RANGE, shover)
-		to_chat(src, span_danger("You shove [target.name] into [src]!"))
-	log_combat(shover, target, "shoved", "into [src] (locker/crate)")
-	return COMSIG_CARBON_SHOVE_HANDLED
+	target.visible_message(span_danger("[shover.name] shoves [target.name] into [src]!"),
+		span_userdanger("You're shoved into [src] by [shover.name]!"),
+		span_hear("You hear aggressive shuffling followed by a loud thud!"), COMBAT_MESSAGE_RANGE, shover)
+	to_chat(src, span_danger("You shove [target.name] into [src]!"))
+	log_combat(shover, target, "shoved", "into [src] (locker/crate)[weapon ? " with [weapon]" : ""]")
+	return COMSIG_LIVING_SHOVE_HANDLED
 
 /// Signal proc for [COMSIG_ATOM_MAGICALLY_UNLOCKED]. Unlock and open up when we get knock casted.
-/obj/structure/closet/proc/on_magic_unlock(datum/source, datum/action/cooldown/spell/aoe/knock/spell, mob/living/caster)
+/obj/structure/closet/proc/on_magic_unlock(datum/source, datum/action/cooldown/spell/aoe/knock/spell, atom/caster)
 	SIGNAL_HANDLER
 
 	locked = FALSE
@@ -1120,5 +1212,9 @@
 
 /obj/structure/closet/preopen
 	opened = TRUE
+
+///Adds the closet to a global list. Placed in its own proc so that crates may be excluded.
+/obj/structure/closet/proc/add_to_roundstart_list()
+	GLOB.roundstart_station_closets += src
 
 #undef LOCKER_FULL

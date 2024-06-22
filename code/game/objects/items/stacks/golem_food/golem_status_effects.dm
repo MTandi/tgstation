@@ -3,6 +3,7 @@
 	id = "golem_status"
 	duration = 5 MINUTES
 	alert_type = /atom/movable/screen/alert/status_effect/golem_status
+	show_duration = TRUE
 	/// Icon state prefix for overlay to display on golem limbs
 	var/overlay_state_prefix
 	/// Name of the mineral we ate to get this
@@ -95,11 +96,11 @@
 	return ..()
 
 /datum/status_effect/golem/get_examine_text()
-	return span_notice("[owner.p_their(capitalized = TRUE)] body has been augmented with veins of [mineral_name].")
+	return span_notice("[owner.p_Their()] body has been augmented with veins of [mineral_name].")
 
 /// Body part overlays applied by golem status effects
 /datum/bodypart_overlay/simple/golem_overlay
-	icon = 'icons/mob/species/golems.dmi'
+	icon = 'icons/mob/human/species/golems.dmi'
 	layers = ALL_EXTERNAL_OVERLAYS
 	///The bodypart that the overlay is currently applied to
 	var/datum/weakref/attached_bodypart
@@ -160,6 +161,11 @@
 	owner.remove_traits(list(TRAIT_ANTIMAGIC, TRAIT_HOLY), TRAIT_STATUS_EFFECT(id))
 	return ..()
 
+/// What do we multiply our damage by to convert it into power?
+#define ENERGY_PER_DAMAGE (0.005 * STANDARD_CELL_CHARGE)
+/// Multiplier to apply to burn damage, not 0 so that we can reverse it more easily
+#define BURN_MULTIPLIER 0.05
+
 /// Heat immunity, turns heat damage into local power
 /datum/status_effect/golem/plasma
 	overlay_state_prefix = "plasma"
@@ -167,35 +173,30 @@
 	applied_fluff = "Plasma cooling rods sprout from your body. You can take the heat!"
 	alert_icon_state = "sheet-plasma"
 	alert_desc = "You are protected from high pressure and can convert heat damage into power."
-	/// What do we multiply our damage by to convert it into power?
-	var/power_multiplier = 5
-	/// Multiplier to apply to burn damage, not 0 so that we can reverse it more easily
-	var/burn_multiplier = 0.05
 
 /datum/status_effect/golem/plasma/on_apply()
 	. = ..()
 	if (!.)
 		return FALSE
-	owner.add_traits(list(TRAIT_RESISTHIGHPRESSURE, TRAIT_RESISTHEAT), TRAIT_STATUS_EFFECT(id))
+	owner.add_traits(list(TRAIT_RESISTHIGHPRESSURE, TRAIT_RESISTHEAT, TRAIT_ASHSTORM_IMMUNE), TRAIT_STATUS_EFFECT(id))
 	RegisterSignal(owner, COMSIG_MOB_APPLY_DAMAGE, PROC_REF(on_burned))
 	var/mob/living/carbon/human/human_owner = owner
-	human_owner.physiology.burn_mod *= burn_multiplier
+	human_owner.physiology.burn_mod *= BURN_MULTIPLIER
 	return TRUE
 
 /datum/status_effect/golem/plasma/on_remove()
-	owner.remove_traits(list(TRAIT_RESISTHIGHPRESSURE, TRAIT_RESISTHEAT), TRAIT_STATUS_EFFECT(id))
+	owner.remove_traits(list(TRAIT_RESISTHIGHPRESSURE, TRAIT_RESISTHEAT, TRAIT_ASHSTORM_IMMUNE), TRAIT_STATUS_EFFECT(id))
 	UnregisterSignal(owner, COMSIG_MOB_APPLY_DAMAGE)
 	var/mob/living/carbon/human/human_owner = owner
-	human_owner.physiology.burn_mod /= burn_multiplier
+	human_owner.physiology.burn_mod /= BURN_MULTIPLIER
 	return ..()
 
 /// When we take fire damage (or... technically also cold damage, we don't differentiate), zap a nearby APC
-/datum/status_effect/golem/plasma/proc/on_burned(datum/source, damage, damagetype)
+/datum/status_effect/golem/plasma/proc/on_burned(datum/source, damage, damagetype, ...)
 	SIGNAL_HANDLER
 	if(damagetype != BURN)
 		return
 
-	var/power = damage * power_multiplier
 	var/obj/machinery/power/energy_accumulator/ground = get_closest_atom(/obj/machinery/power/energy_accumulator, view(4, owner), owner)
 	if (ground)
 		zap_effect(ground)
@@ -206,7 +207,10 @@
 	if (!our_apc)
 		return
 	zap_effect(our_apc)
-	our_apc.cell?.give(power)
+	our_apc.cell?.give(damage * ENERGY_PER_DAMAGE)
+
+#undef ENERGY_PER_DAMAGE
+#undef BURN_MULTIPLIER
 
 /// Shoot a beam at the target atom
 /datum/status_effect/golem/plasma/proc/zap_effect(atom/target)
@@ -260,9 +264,9 @@
 	alert_icon_state = "sheet-diamond"
 	alert_desc = "Light is bending around you, making you hard to see while still and faster while moving."
 	/// Alpha to remove per second while stood still
-	var/alpha_per_tick = 25
+	var/alpha_per_tick = 20
 	/// Alpha to apply while moving
-	var/moving_alpha = 150
+	var/moving_alpha = 200
 	/// List of arms we have updated
 	var/list/modified_arms
 
@@ -270,7 +274,7 @@
 	. = ..()
 	if (!.)
 		return FALSE
-	RegisterSignal(owner, COMSIG_MOVABLE_MOVED, PROC_REF(on_move))
+	RegisterSignals(owner, list(COMSIG_MOVABLE_MOVED, COMSIG_MOB_THROW, COMSIG_MOB_ATTACK_HAND, COMSIG_MOB_ITEM_ATTACK), PROC_REF(on_reveal))
 	owner.alpha = moving_alpha
 	owner.add_movespeed_modifier(/datum/movespeed_modifier/status_effect/light_speed)
 
@@ -285,23 +289,24 @@
 	owner.alpha = max(owner.alpha - alpha_per_tick, 0)
 
 /// Reset alpha to starting value
-/datum/status_effect/golem/diamond/proc/on_move()
+/datum/status_effect/golem/diamond/proc/on_reveal()
 	SIGNAL_HANDLER
 	owner.alpha = moving_alpha
 
 /// Make our arm do slashing effects
 /datum/status_effect/golem/diamond/proc/set_arm_fluff(obj/item/bodypart/arm/arm)
-	arm.unarmed_attack_verb = "slash"
+	arm.unarmed_attack_verbs = list("slash")
+	arm.grappled_attack_verb = "lacerate"
 	arm.unarmed_attack_effect = ATTACK_EFFECT_CLAW
 	arm.unarmed_attack_sound = 'sound/weapons/slash.ogg'
 	arm.unarmed_miss_sound = 'sound/weapons/slashmiss.ogg'
-	RegisterSignal(arm, COMSIG_PARENT_QDELETING, PROC_REF(on_arm_destroyed))
+	RegisterSignal(arm, COMSIG_QDELETING, PROC_REF(on_arm_destroyed))
 	LAZYADD(modified_arms, arm)
 
 /datum/status_effect/golem/diamond/on_remove()
 	owner.alpha = initial(owner.alpha)
 	owner.remove_movespeed_modifier(/datum/movespeed_modifier/status_effect/light_speed)
-	UnregisterSignal(owner, COMSIG_MOVABLE_MOVED)
+	UnregisterSignal(owner, list(COMSIG_MOVABLE_MOVED, COMSIG_MOB_THROW, COMSIG_MOB_ATTACK_HAND, COMSIG_MOB_ITEM_ATTACK))
 	for (var/obj/item/bodypart/arm/arm as anything in modified_arms)
 		reset_arm_fluff(arm)
 	LAZYCLEARLIST(modified_arms)
@@ -311,11 +316,11 @@
 /datum/status_effect/golem/diamond/proc/reset_arm_fluff(obj/item/bodypart/arm/arm)
 	if (!arm)
 		return
-	arm.unarmed_attack_verb = initial(arm.unarmed_attack_verb)
+	arm.unarmed_attack_verbs = initial(arm.unarmed_attack_verbs)
 	arm.unarmed_attack_effect = initial(arm.unarmed_attack_effect)
 	arm.unarmed_attack_sound = initial(arm.unarmed_attack_sound)
 	arm.unarmed_miss_sound = initial(arm.unarmed_miss_sound)
-	UnregisterSignal(arm, COMSIG_PARENT_QDELETING)
+	UnregisterSignal(arm, COMSIG_QDELETING)
 
 /// Remove references to deleted arms
 /datum/status_effect/golem/diamond/proc/on_arm_destroyed(obj/item/bodypart/arm/arm)
@@ -343,7 +348,7 @@
 	if (!.)
 		return FALSE
 	var/mob/living/carbon/human/human_owner = owner
-	RegisterSignal(human_owner, COMSIG_HUMAN_MELEE_UNARMED_ATTACK, PROC_REF(on_punched))
+	RegisterSignal(human_owner, COMSIG_LIVING_UNARMED_ATTACK, PROC_REF(on_punched))
 	human_owner.physiology.brute_mod *= brute_modifier
 	for (var/obj/item/bodypart/arm/arm in human_owner.bodyparts)
 		if (arm.limb_id != SPECIES_GOLEM)
@@ -354,23 +359,22 @@
 /datum/status_effect/golem/titanium/proc/on_punched(mob/living/puncher, atom/punchee, proximity)
 	SIGNAL_HANDLER
 	if (!proximity || !isliving(punchee))
-		return
+		return NONE
 	var/mob/living/victim = punchee
 	if (victim.body_position == LYING_DOWN || (!(FACTION_MINING in victim.faction) && !(FACTION_BOSS in victim.faction)))
-		return
+		return NONE
 	victim.apply_damage(mining_bonus, BRUTE)
 
 /// Make the targeted arm big and strong
 /datum/status_effect/golem/titanium/proc/buff_arm(obj/item/bodypart/arm/arm)
 	arm.unarmed_damage_low += damage_increase
 	arm.unarmed_damage_high += damage_increase
-	arm.unarmed_stun_threshold += damage_increase // We don't want to make knockdown more likely
-	RegisterSignal(arm, COMSIG_PARENT_QDELETING, PROC_REF(on_arm_destroyed))
+	RegisterSignal(arm, COMSIG_QDELETING, PROC_REF(on_arm_destroyed))
 	LAZYADD(modified_arms, arm)
 
 /datum/status_effect/golem/titanium/on_remove()
 	var/mob/living/carbon/human/human_owner = owner
-	UnregisterSignal(human_owner, COMSIG_HUMAN_MELEE_UNARMED_ATTACK)
+	UnregisterSignal(human_owner, COMSIG_LIVING_UNARMED_ATTACK)
 	human_owner.physiology.brute_mod /= brute_modifier
 	for (var/obj/item/bodypart/arm/arm as anything in modified_arms)
 		debuff_arm(arm)
@@ -383,8 +387,7 @@
 		return
 	arm.unarmed_damage_low -= damage_increase
 	arm.unarmed_damage_high -= damage_increase
-	arm.unarmed_stun_threshold -= damage_increase
-	UnregisterSignal(arm, COMSIG_PARENT_QDELETING)
+	UnregisterSignal(arm, COMSIG_QDELETING)
 
 /// Remove references to deleted arms
 /datum/status_effect/golem/titanium/proc/on_arm_destroyed(obj/item/bodypart/arm/arm)
@@ -405,13 +408,21 @@
 	. = ..()
 	if (!.)
 		return
-	owner.AddElement(/datum/element/waddling)
+	owner.AddElementTrait(TRAIT_WADDLING, TRAIT_STATUS_EFFECT(id), /datum/element/waddling)
 	ADD_TRAIT(owner, TRAIT_NO_SLIP_WATER, TRAIT_STATUS_EFFECT(id))
-	slipperiness = owner.AddComponent(/datum/component/slippery, knockdown = 12 SECONDS, lube_flags = NO_SLIP_WHEN_WALKING)
+	slipperiness = owner.AddComponent(\
+		/datum/component/slippery,\
+		knockdown = 12 SECONDS,\
+		lube_flags = NO_SLIP_WHEN_WALKING,\
+		can_slip_callback = CALLBACK(src, PROC_REF(try_slip)),\
+	)
+
+/// Only slip people when we're down on the ground
+/datum/status_effect/golem/bananium/proc/try_slip(mob/living/slipper, mob/living/slippee)
+	return owner.body_position == LYING_DOWN
 
 /datum/status_effect/golem/bananium/on_remove()
-	REMOVE_TRAIT(owner, TRAIT_NO_SLIP_WATER, TRAIT_STATUS_EFFECT(id))
-	owner.RemoveElement(/datum/element/waddling)
+	owner.remove_traits(owner, list(TRAIT_WADDLING, TRAIT_NO_SLIP_WATER), TRAIT_STATUS_EFFECT(id))
 	QDEL_NULL(slipperiness)
 	return ..()
 
@@ -426,15 +437,14 @@
 	var/glow_range = 3
 	var/glow_power = 1
 	var/glow_color = LIGHT_COLOR_DEFAULT
-	var/datum/component/overlay_lighting/lightbulb
+	var/obj/effect/dummy/lighting_obj/moblight/lightbulb
 
 /datum/status_effect/golem_lightbulb/on_apply()
 	. = ..()
 	if (!.)
 		return
 	to_chat(owner, span_notice("You start to emit a healthy glow."))
-	owner.light_system = MOVABLE_LIGHT
-	lightbulb = owner.AddComponent(/datum/component/overlay_lighting, _range = glow_range, _power = glow_power, _color = glow_color)
+	lightbulb = owner.mob_light(glow_range, glow_power, glow_color)
 	owner.add_filter(LIGHTBULB_FILTER, 2, list("type" = "outline", "color" = glow_color, "alpha" = 60, "size" = 1))
 
 /datum/status_effect/golem_lightbulb/on_remove()

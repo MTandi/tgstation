@@ -7,7 +7,7 @@
 	text_gain_indication = "<span class='notice'>Your throat is burning!</span>"
 	text_lose_indication = "<span class='notice'>Your throat is cooling down.</span>"
 	power_path = /datum/action/cooldown/spell/cone/staggered/fire_breath
-	instability = 30
+	instability = POSITIVE_INSTABILITY_MODERATE
 	energy_coeff = 1
 	power_coeff = 1
 
@@ -67,7 +67,7 @@
 	// When casting, throw the caster backwards a few tiles.
 	var/original_dir = living_cast_on.dir
 	living_cast_on.throw_at(
-		get_edge_target_turf(living_cast_on, turn(living_cast_on.dir, 180)),
+		get_edge_target_turf(living_cast_on, REVERSE_DIR(living_cast_on.dir)),
 		range = self_throw_range,
 		speed = 2,
 		gentle = TRUE,
