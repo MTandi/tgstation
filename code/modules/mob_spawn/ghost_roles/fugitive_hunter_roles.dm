@@ -7,10 +7,6 @@
 	show_flavor = FALSE
 	var/back_story = "error"
 
-/obj/effect/mob_spawn/ghost_role/human/fugitive/Initialize(mapload)
-	. = ..()
-	notify_ghosts("Hunters are waking up looking for refugees!", source = src, action=NOTIFY_ATTACK, flashwindow = FALSE, ignore_key = POLL_IGNORE_FUGITIVE)
-
 /obj/effect/mob_spawn/ghost_role/human/fugitive/special(mob/living/carbon/human/spawned_human)
 	. = ..()
 	var/datum/antagonist/fugitive_hunter/fughunter = new
@@ -59,18 +55,6 @@
 	icon = 'icons/obj/machines/sleeper.dmi'
 	icon_state = "sleeper"
 
-/obj/effect/mob_spawn/ghost_role/human/fugitive/psykers
-	name = "mental energizer"
-	desc = "A cryo sleeper modified to keep the occupant mentally sharp. However that works..."
-	icon_state = "psykerpod"
-	prompt_name = "a psyker-hunter"
-	mob_species = /datum/species/human
-	outfit = /datum/outfit/psyker
-
-/obj/effect/mob_spawn/ghost_role/human/fugitive/psykers/captain
-	prompt_name = "a psyker-hunter captain"
-	outfit = /datum/outfit/psyker/captain
-
 /obj/effect/mob_spawn/ghost_role/human/fugitive/bounty/Destroy()
 	var/obj/structure/fluff/empty_sleeper/S = new(drop_location())
 	S.setDir(dir)
@@ -85,30 +69,45 @@
 /obj/effect/mob_spawn/ghost_role/human/fugitive/bounty/synth
 	outfit = /datum/outfit/bountysynth
 
-/obj/effect/mob_spawn/ghost_role/human/fugitive/bounty/psyker
+/obj/effect/mob_spawn/ghost_role/human/fugitive/psyker
 	name = "mental energizer"
 	desc = "A cryo sleeper modified to keep the occupant mentally sharp. However that works..."
 	icon_state = "psykerpod"
 	prompt_name = "a psyker"
 	you_are_text = "Ahahaha! I am a Psyker Shikari!"
 	flavour_text = "Man, waking up from a gorenap always BLOWS. Finding dealers in this sector of space is always difficult, but \
-		we've recieved an offer that might set us up for life! Kidnap some fugitives and get FREE GORE!"
+		we've received an offer that might set us up for life! Kidnap some fugitives and get FREE GORE!"
 	back_story = HUNTER_PACK_PSYKER
 	outfit = /datum/outfit/psyker
 
-/obj/effect/mob_spawn/ghost_role/human/fugitive/bounty/psyker/captain
+/obj/effect/mob_spawn/ghost_role/human/fugitive/psyker/captain
 	prompt_name = "a psyker Captain"
 	back_story = HUNTER_PACK_PSYKER
 	outfit = /datum/outfit/psyker/captain
 
-/obj/effect/mob_spawn/ghost_role/human/fugitive/bounty/psyker/seer
+/obj/effect/mob_spawn/ghost_role/human/fugitive/psyker/seer
 	name = "cryosleep pod"
 	desc = "A dingy, poorly maintained, but still run-of-the-mill cryo sleeper."
 	icon = 'icons/obj/machines/sleeper.dmi'
 	icon_state = "sleeper"
 	prompt_name = "a psyker seer"
-	you_are_text = "psyker seer"
-	flavour_text = "Oh great, the fortunte-tellers want my help with something again. They picked up up while I was space-hitchhiking, said they would take me anywhere \
+	you_are_text = "Ugh, I'm the Psyker Seer."
+	flavour_text = "Oh great, the fortunte-tellers want my help with something again. They picked me up while I was space-hitchhiking, said they would take me anywhere \
 		if I assisted them with my 'flesh-gaze'. They're a bunch of freaks, but at least they leave me be after I'm done helping them..."
 	back_story = HUNTER_PACK_PSYKER
 	outfit = /datum/outfit/psyker_seer
+
+/obj/effect/mob_spawn/ghost_role/human/fugitive/mi13
+	name = "top-secret pod"
+	desc = "You don't have the classification to know what this pod contains or what its purpose is."
+	icon = 'icons/obj/machines/sleeper.dmi'
+	icon_state = "sleeper_s"
+	prompt_name = "a MI13 agent"
+	you_are_text = "I am an agent sent by MI13."
+	flavour_text = "Your mission is to infiltrate the space around SS13 and capture the fugitives on board, dead or alive. Your shuttle has been disguised as an ordinary food truck to help you remain undetected. \
+		This is a stealth mission in enemy territory. Reinforcements will not be sent to save you. Microbombs have been implanted in case of capture. Do not disappoint."
+	back_story = HUNTER_PACK_MI13
+	outfit = /datum/outfit/mi13_hunter
+
+/obj/effect/mob_spawn/ghost_role/human/fugitive/mi13/chef
+	outfit = /datum/outfit/mi13_hunter/chef

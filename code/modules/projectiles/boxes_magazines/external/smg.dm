@@ -76,7 +76,7 @@
 
 /obj/item/ammo_box/magazine/smgm45
 	name = "SMG magazine (.45)"
-	icon_state = "c20r45-24"
+	icon_state = "c20r45"
 	base_icon_state = "c20r45"
 	ammo_type = /obj/item/ammo_casing/c45
 	caliber = CALIBER_45
@@ -89,6 +89,10 @@
 /obj/item/ammo_box/magazine/smgm45/ap
 	name = "SMG magazine (Armour Piercing .45)"
 	ammo_type = /obj/item/ammo_casing/c45/ap
+
+/obj/item/ammo_box/magazine/smgm45/hp
+	name = "SMG magazine (Hollow Point .45)"
+	ammo_type = /obj/item/ammo_casing/c45/hp
 
 /obj/item/ammo_box/magazine/smgm45/incen
 	name = "SMG magazine (Incendiary .45)"

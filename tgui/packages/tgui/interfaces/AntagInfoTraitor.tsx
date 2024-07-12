@@ -1,8 +1,15 @@
+import {
+  BlockQuote,
+  Button,
+  Dimmer,
+  Section,
+  Stack,
+} from 'tgui-core/components';
+import { BooleanLike } from 'tgui-core/react';
+
 import { useBackend } from '../backend';
-import { multiline } from 'common/string';
-import { BlockQuote, Button, Dimmer, Section, Stack } from '../components';
-import { BooleanLike } from 'common/react';
 import { Window } from '../layouts';
+import { Objective, ObjectivePrintout } from './common/Objectives';
 
 const allystyle = {
   fontWeight: 'bold',
@@ -17,12 +24,6 @@ const badstyle = {
 const goalstyle = {
   color: 'lightblue',
   fontWeight: 'bold',
-};
-
-type Objective = {
-  count: number;
-  name: string;
-  explanation: string;
 };
 
 type Info = {
@@ -40,44 +41,27 @@ type Info = {
   has_uplink: BooleanLike;
   uplink_intro: string;
   uplink_unlock_info: string;
+  given_uplink: BooleanLike;
   objectives: Objective[];
 };
 
-const ObjectivePrintout = (props, context) => {
-  const { data } = useBackend<Info>(context);
-  const { objectives } = data;
-  return (
-    <Stack vertical>
-      <Stack.Item bold>Your current objectives:</Stack.Item>
-      <Stack.Item>
-        {(!objectives && 'None!') ||
-          objectives.map((objective) => (
-            <Stack.Item key={objective.count}>
-              #{objective.count}: {objective.explanation}
-            </Stack.Item>
-          ))}
-      </Stack.Item>
-    </Stack>
-  );
-};
-
-const IntroductionSection = (props, context) => {
-  const { act, data } = useBackend<Info>(context);
-  const { intro } = data;
+const IntroductionSection = (props) => {
+  const { act, data } = useBackend<Info>();
+  const { intro, objectives } = data;
   return (
     <Section fill title="Intro" scrollable>
       <Stack vertical fill>
         <Stack.Item fontSize="25px">{intro}</Stack.Item>
         <Stack.Item grow>
-          <ObjectivePrintout />
+          <ObjectivePrintout objectives={objectives} />
         </Stack.Item>
       </Stack>
     </Section>
   );
 };
 
-const EmployerSection = (props, context) => {
-  const { data } = useBackend<Info>(context);
+const EmployerSection = (props) => {
+  const { data } = useBackend<Info>();
   const { allies, goal } = data;
   return (
     <Section
@@ -87,14 +71,16 @@ const EmployerSection = (props, context) => {
       buttons={
         <Button
           icon="hammer"
-          tooltip={multiline`
+          tooltip={`
             This is a gameplay suggestion for bored traitors.
             You don't have to follow it, unless you want some
             ideas for how to spend the round.`}
-          tooltipPosition="bottom-start">
+          tooltipPosition="bottom-start"
+        >
           Policy
         </Button>
-      }>
+      }
+    >
       <Stack vertical fill>
         <Stack.Item grow>
           <Stack vertical>
@@ -120,8 +106,8 @@ const EmployerSection = (props, context) => {
   );
 };
 
-const UplinkSection = (props, context) => {
-  const { data } = useBackend<Info>(context);
+const UplinkSection = (props) => {
+  const { data } = useBackend<Info>();
   const {
     has_uplink,
     uplink_intro,
@@ -195,8 +181,8 @@ const UplinkSection = (props, context) => {
   );
 };
 
-const CodewordsSection = (props, context) => {
-  const { data } = useBackend<Info>(context);
+const CodewordsSection = (props) => {
+  const { data } = useBackend<Info>();
   const { has_codewords, phrases, responses } = data;
   return (
     <Section title="Codewords" mb={!has_codewords && -1}>
@@ -241,9 +227,9 @@ const CodewordsSection = (props, context) => {
   );
 };
 
-export const AntagInfoTraitor = (props, context) => {
-  const { data } = useBackend<Info>(context);
-  const { theme } = data;
+export const AntagInfoTraitor = (props) => {
+  const { data } = useBackend<Info>();
+  const { theme, given_uplink } = data;
   return (
     <Window width={620} height={580} theme={theme}>
       <Window.Content>
@@ -258,9 +244,11 @@ export const AntagInfoTraitor = (props, context) => {
               </Stack.Item>
             </Stack>
           </Stack.Item>
-          <Stack.Item>
-            <UplinkSection />
-          </Stack.Item>
+          {!!given_uplink && (
+            <Stack.Item>
+              <UplinkSection />
+            </Stack.Item>
+          )}
           <Stack.Item>
             <CodewordsSection />
           </Stack.Item>

@@ -15,6 +15,7 @@
 /mob/living/carbon/proc/del_and_replace_bodypart(obj/item/bodypart/new_limb, special)
 	var/obj/item/bodypart/old_limb = get_bodypart(new_limb.body_zone)
 	if(old_limb)
+		old_limb.drop_limb(special = TRUE)
 		qdel(old_limb)
 	new_limb.try_attach_limb(src, special = special)
 
@@ -43,10 +44,19 @@
 
 /mob/living/carbon/get_active_hand()
 	var/which_hand = BODY_ZONE_PRECISE_L_HAND
-	if(!(active_hand_index % 2))
+	if(!(active_hand_index % RIGHT_HANDS))
 		which_hand = BODY_ZONE_PRECISE_R_HAND
 	return get_bodypart(check_zone(which_hand))
 
+/// Gets the inactive hand of the mob. Returns FALSE on non-carbons, otherwise returns the /obj/item/bodypart.
+/mob/proc/get_inactive_hand()
+	return null
+
+/mob/living/carbon/get_inactive_hand()
+	var/which_hand = BODY_ZONE_PRECISE_R_HAND
+	if(!(active_hand_index % RIGHT_HANDS))
+		which_hand = BODY_ZONE_PRECISE_L_HAND
+	return get_bodypart(check_zone(which_hand))
 
 /mob/proc/has_left_hand(check_disabled = TRUE)
 	return TRUE
@@ -54,7 +64,7 @@
 
 /mob/living/carbon/has_left_hand(check_disabled = TRUE)
 	for(var/obj/item/bodypart/hand_instance in hand_bodyparts)
-		if(!(hand_instance.held_index % 2) || (check_disabled && hand_instance.bodypart_disabled))
+		if(!(hand_instance.held_index % RIGHT_HANDS) || (check_disabled && hand_instance.bodypart_disabled))
 			continue
 		return TRUE
 	return FALSE
@@ -70,7 +80,7 @@
 
 /mob/living/carbon/has_right_hand(check_disabled = TRUE)
 	for(var/obj/item/bodypart/hand_instance in hand_bodyparts)
-		if(hand_instance.held_index % 2 || (check_disabled && hand_instance.bodypart_disabled))
+		if(hand_instance.held_index % RIGHT_HANDS || (check_disabled && hand_instance.bodypart_disabled))
 			continue
 		return TRUE
 	return FALSE
@@ -82,7 +92,7 @@
 
 /mob/living/carbon/proc/get_missing_limbs()
 	RETURN_TYPE(/list)
-	var/list/full = list(BODY_ZONE_HEAD, BODY_ZONE_CHEST, BODY_ZONE_R_ARM, BODY_ZONE_L_ARM, BODY_ZONE_R_LEG, BODY_ZONE_L_LEG)
+	var/list/full = GLOB.all_body_zones.Copy()
 	for(var/zone in full)
 		if(get_bodypart(zone))
 			full -= zone
@@ -99,7 +109,7 @@
 	return list()
 
 /mob/living/carbon/get_disabled_limbs()
-	var/list/full = list(BODY_ZONE_HEAD, BODY_ZONE_CHEST, BODY_ZONE_R_ARM, BODY_ZONE_L_ARM, BODY_ZONE_R_LEG, BODY_ZONE_L_LEG)
+	var/list/full = GLOB.all_body_zones.Copy()
 	var/list/disabled = list()
 	for(var/zone in full)
 		var/obj/item/bodypart/affecting = get_bodypart(zone)
@@ -129,7 +139,7 @@
 /mob/living/carbon/proc/has_embedded_objects(include_harmless=FALSE)
 	for(var/obj/item/bodypart/bodypart as anything in bodyparts)
 		for(var/obj/item/embedded in bodypart.embedded_objects)
-			if(!include_harmless && embedded.isEmbedHarmless())
+			if(!include_harmless && embedded.is_embed_harmless())
 				continue
 			return TRUE
 
@@ -166,9 +176,27 @@
 		if(BODY_ZONE_CHEST)
 			new_bodypart = new /obj/item/bodypart/chest/alien()
 	if(new_bodypart)
-		new_bodypart.update_limb(src)
+		new_bodypart.update_limb(is_creating = TRUE)
 
+/// Makes sure that the owner's bodytype flags match the flags of all of it's parts and organs
+/mob/living/carbon/proc/synchronize_bodytypes()
+	var/all_limb_flags = NONE
+	for(var/obj/item/bodypart/limb as anything in bodyparts)
+		for(var/obj/item/organ/external/ext_organ in limb)
+			all_limb_flags |= ext_organ.external_bodytypes
+		all_limb_flags |= limb.bodytype
 
+	bodytype = all_limb_flags
+
+/// Makes sure that the owner's bodyshape flags match the flags of all of it's parts and organs
+/mob/living/carbon/proc/synchronize_bodyshapes()
+	var/all_limb_flags = NONE
+	for(var/obj/item/bodypart/limb as anything in bodyparts)
+		for(var/obj/item/organ/external/ext_organ in limb)
+			all_limb_flags |= ext_organ.external_bodyshapes
+		all_limb_flags |= limb.bodyshape
+
+	bodyshape = all_limb_flags
 
 /proc/skintone2hex(skin_tone)
 	. = 0
@@ -191,6 +219,14 @@
 			. = "#c4915e"
 		if("indian")
 			. = "#b87840"
+		if("mixed1")
+			. = "#a57a66"
+		if("mixed2")
+			. = "#87563d"
+		if("mixed3")
+			. = "#725547"
+		if("mixed4")
+			. = "#866e63"
 		if("african1")
 			. = "#754523"
 		if("african2")
@@ -199,3 +235,5 @@
 			. = "#fff4e6"
 		if("orange")
 			. = "#ffc905"
+		if("green")
+			. = "#a8e61d"

@@ -13,7 +13,7 @@ GLOBAL_LIST_EMPTY(req_console_ckey_departments)
 /obj/machinery/requests_console
 	name = "requests console"
 	desc = "A console intended to send requests to different departments on the station."
-	icon = 'icons/obj/terminals.dmi'
+	icon = 'icons/obj/machines/wallmounts.dmi'
 	icon_state = "req_comp_off"
 	base_icon_state = "req_comp"
 	active_power_usage = BASE_MACHINE_ACTIVE_CONSUMPTION * 0.15
@@ -49,12 +49,6 @@ GLOBAL_LIST_EMPTY(req_console_ckey_departments)
 	var/emergency
 	/// If ore redemption machines will send an update when it receives new ores.
 	var/receive_ore_updates = FALSE
-	/// Can others request assistance from this terminal?
-	var/assistance_requestable = FALSE
-	/// Can others request supplies from this terminal?
-	var/supplies_requestable = FALSE
-	/// Can you relay information to this console?
-	var/anon_tips_receiver = FALSE
 	/// Did we error in the last mail?
 	var/has_mail_send_error = FALSE
 	/// Cooldown to prevent announcement spam
@@ -129,19 +123,11 @@ GLOBAL_LIST_EMPTY(req_console_ckey_departments)
 
 	GLOB.req_console_all += src
 
-	if((assistance_requestable)) // adding to assistance list if not already present
-		GLOB.req_console_assistance |= department
-
-	if((supplies_requestable)) // supplier list
-		GLOB.req_console_supplies |= department
-
-	if((anon_tips_receiver)) // tips lists
-		GLOB.req_console_information |= department
-
 	GLOB.req_console_ckey_departments[ckey(department)] = department // and then we set ourselves a listed name
 
 	radio = new /obj/item/radio(src)
 	radio.set_listening(FALSE)
+	find_and_hang_on_wall()
 
 /obj/machinery/requests_console/Destroy()
 	QDEL_NULL(radio)
@@ -158,7 +144,7 @@ GLOBAL_LIST_EMPTY(req_console_ckey_departments)
 		ui.set_autoupdate(FALSE)
 		ui.open()
 
-/obj/machinery/requests_console/ui_act(action, params)
+/obj/machinery/requests_console/ui_act(action, list/params, datum/tgui/ui, datum/ui_state/state)
 	. = ..()
 	if(.)
 		return
@@ -206,14 +192,15 @@ GLOBAL_LIST_EMPTY(req_console_ckey_departments)
 			if(!(announcement_authenticated || isAdminGhostAI(usr)))
 				return
 
-			var/message = reject_bad_text(params["message"])
+			var/message = reject_bad_text(trim(html_encode(params["message"]), MAX_MESSAGE_LEN), ascii_only = FALSE)
 			if(!message)
 				to_chat(usr, span_alert("Invalid message."))
 				return
 			if(isliving(usr))
 				var/mob/living/L = usr
-				message = L.treat_message(message)
-			minor_announce(message, "[department] Announcement:", html_encode = FALSE)
+				message = L.treat_message(message)["message"]
+
+			minor_announce(message, "[department] Announcement:", html_encode = FALSE, sound_override = 'sound/misc/announce_dig.ogg')
 			GLOB.news_network.submit_article(message, department, "Station Announcements", null)
 			usr.log_talk(message, LOG_SAY, tag="station announcement from [src]")
 			message_admins("[ADMIN_LOOKUPFLW(usr)] has made a station announcement from [src] at [AREACOORD(usr)].")
@@ -225,8 +212,9 @@ GLOBAL_LIST_EMPTY(req_console_ckey_departments)
 		if("quick_reply")
 			var/recipient = params["reply_recipient"]
 
-			var/reply_message = reject_bad_text(tgui_input_text(usr, "Write a quick reply to [recipient]", "Awaiting Input"))
-
+			var/reply_message = reject_bad_text(tgui_input_text(usr, "Write a quick reply to [recipient]", "Awaiting Input"), ascii_only = FALSE)
+			if(QDELETED(ui) || ui.status != UI_INTERACTIVE)
+				return
 			if(!reply_message)
 				has_mail_send_error = TRUE
 				playsound(src, 'sound/machines/buzz-two.ogg', 50, TRUE)
@@ -241,7 +229,7 @@ GLOBAL_LIST_EMPTY(req_console_ckey_departments)
 			var/priority = params["priority"]
 			if(!priority)
 				return
-			var/message = reject_bad_text(params["message"])
+			var/message = reject_bad_text(trim(html_encode(params["message"]), MAX_MESSAGE_LEN), ascii_only = FALSE)
 			if(!message)
 				to_chat(usr, span_alert("Invalid message."))
 				has_mail_send_error = TRUE
@@ -407,10 +395,8 @@ GLOBAL_LIST_EMPTY(req_console_ckey_departments)
 		return
 	return ..()
 
-/obj/machinery/requests_console/deconstruct(disassembled = TRUE)
-	if(!(flags_1 & NODECONSTRUCT_1))
-		new /obj/item/wallframe/requests_console(loc)
-	qdel(src)
+/obj/machinery/requests_console/on_deconstruction(disassembled)
+	new /obj/item/wallframe/requests_console(loc)
 
 /obj/machinery/requests_console/auto_name // Register an autoname variant and then make the directional helpers before undefing all the magic bits
 	auto_name = TRUE
@@ -421,7 +407,7 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/requests_console/auto_name, 30)
 /obj/item/wallframe/requests_console
 	name = "requests console"
 	desc = "An unmounted requests console. Attach it to a wall to use."
-	icon = 'icons/obj/terminals.dmi'
+	icon = 'icons/obj/machines/wallmounts.dmi'
 	icon_state = "req_comp_off"
 	result_path = /obj/machinery/requests_console/auto_name
 	pixel_shift = 30

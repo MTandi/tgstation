@@ -2,28 +2,29 @@
 /datum/species/golem
 	name = "Golem"
 	id = SPECIES_GOLEM
-	species_traits = list(
-		NO_DNA_COPY,
-		NOTRANSSTING,
-		NO_UNDERWEAR,
-		NOEYEHOLES,
-	)
 	inherent_traits = list(
 		TRAIT_GENELESS,
 		TRAIT_LAVA_IMMUNE,
+		TRAIT_NEVER_WOUNDED,
+		TRAIT_NOBLOOD,
 		TRAIT_NOBREATH,
 		TRAIT_NODISMEMBER,
-		TRAIT_NOBLOOD,
 		TRAIT_NOFIRE,
+		TRAIT_NO_AUGMENTS,
+		TRAIT_NO_DNA_COPY,
+		TRAIT_NO_PLASMA_TRANSFORM,
+		TRAIT_NO_UNDERWEAR,
 		TRAIT_PIERCEIMMUNE,
 		TRAIT_RADIMMUNE,
+		TRAIT_SNOWSTORM_IMMUNE, // Shared with plasma river... but I guess if you can survive a plasma river a blizzard isn't a big deal
+		TRAIT_UNHUSKABLE,
+		TRAIT_BOULDER_BREAKER,
 	)
 	mutantheart = null
 	mutantlungs = null
 	inherent_biotypes = MOB_HUMANOID|MOB_MINERAL
-	liked_food = STONE
-	payday_modifier = 0.75
-	armor = 55
+	damage_modifier = 10 //golem is stronk
+	payday_modifier = 1.0
 	siemens_coeff = 0
 	no_equip_flags = ITEM_SLOT_MASK | ITEM_SLOT_OCLOTHING | ITEM_SLOT_GLOVES | ITEM_SLOT_FEET | ITEM_SLOT_ICLOTHING | ITEM_SLOT_SUITSTORE
 	changesource_flags = MIRROR_BADMIN | WABBAJACK | MIRROR_PRIDE | MIRROR_MAGIC
@@ -39,6 +40,7 @@
 	mutantbrain = /obj/item/organ/internal/brain/golem
 	mutanttongue = /obj/item/organ/internal/tongue/golem
 	mutantstomach = /obj/item/organ/internal/stomach/golem
+	mutantliver = /obj/item/organ/internal/liver/golem
 	mutantappendix = /obj/item/organ/internal/appendix/golem
 	bodypart_overrides = list(
 		BODY_ZONE_L_ARM = /obj/item/bodypart/arm/left/golem,
@@ -49,14 +51,19 @@
 		BODY_ZONE_CHEST = /obj/item/bodypart/chest/golem,
 	)
 
-	/// Chance that we will generate a human surname, for lore reasons
-	var/human_surname_chance = 3
+/datum/species/golem/get_physical_attributes()
+	return "Golems are hardy creatures made out of stone, which are thus naturally resistant to many dangers, including asphyxiation, fire, radiation, electricity, and viruses.\
+		They gain special abilities depending on the type of material consumed, but they need to consume material to keep their body animated."
 
-/datum/species/golem/random_name(gender,unique,lastname)
-	var/name = pick(GLOB.golem_names)
-	if (prob(human_surname_chance))
-		name += " [pick(GLOB.last_names)]"
-	return name
+/datum/species/golem/get_species_description()
+	return "Golems are lithoid creatures who eat rocks and minerals to survive and adapt."
+
+/datum/species/golem/get_species_lore()
+	return list(
+		"While Golems have long been commonly found on frontier worlds, peacefully mining and otherwise living in harmony with the environment, \
+		it is believed they were originally constructed in Nanotrasen laboratories as a form of cheap labor. Whatever happened up to this point is unknown, \
+		but they have since gained freedom and are now a rare sight in the galaxy.",
+	)
 
 /datum/species/golem/create_pref_unique_perks()
 	var/list/to_add = list()
@@ -81,7 +88,7 @@
 		SPECIES_PERK_TYPE = SPECIES_POSITIVE_PERK,
 		SPECIES_PERK_ICON = "pickaxe",
 		SPECIES_PERK_NAME = "Natural Miners",
-		SPECIES_PERK_DESC = "Golems can see dimly in the dark, sense minerals, and mine stone with their bare hands. \
+		SPECIES_PERK_DESC = "Golems can see dimly in the dark, sense minerals, break boulders, and mine stone with their bare hands. \
 			They can even smelt ores in an internal furnace, if their surrounding environment is hot enough.",
 	))
 
@@ -94,10 +101,3 @@
 	))
 
 	return to_add
-
-/// Remove nutrient value from non-mineral food, wish this was on an organ and not species but such is life
-/datum/species/golem/handle_chemicals(datum/reagent/chem, mob/living/carbon/human/H, delta_time, times_fired)
-	if (istype(chem, /datum/reagent/consumable) && !istype(chem, /datum/reagent/consumable/nutriment/mineral))
-		var/datum/reagent/consumable/yummy_chem = chem
-		yummy_chem.nutriment_factor = 0
-	return ..()

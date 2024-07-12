@@ -1,9 +1,9 @@
 /obj/item/clothing/under/rank/medical
 	icon = 'icons/obj/clothing/under/medical.dmi'
 	worn_icon = 'icons/mob/clothing/under/medical.dmi'
-	armor_type = /datum/armor/rank_medical
+	armor_type = /datum/armor/clothing_under/rank_medical
 
-/datum/armor/rank_medical
+/datum/armor/clothing_under/rank_medical
 	bio = 50
 
 /obj/item/clothing/under/rank/medical/doctor
@@ -94,6 +94,22 @@
 	desc = "It's made of a special fiber that provides minor protection against biohazards. This one is in deep purple."
 	icon_state = "scrubswine"
 
+/obj/item/clothing/under/rank/medical/coroner
+	desc = "It's made of a special fiber that provides minor protection against biohazards. It has a white cross turned sideways on the chest, denoting that the wearer is a trained coroner."
+	name = "coroner jumpsuit"
+	icon_state = "coroner"
+	inhand_icon_state = "w_suit"
+
+/obj/item/clothing/under/rank/medical/coroner/skirt
+	name = "coroner jumpskirt"
+	desc = "It's made of a special fiber that provides minor protection against biohazards. It has a white cross turned sideways on the chest, denoting that the wearer is a trained coroner."
+	icon_state = "coroner_skirt"
+	inhand_icon_state = "w_suit"
+	body_parts_covered = CHEST|GROIN|ARMS
+	dying_key = DYE_REGISTRY_JUMPSKIRT
+	female_sprite_flags = FEMALE_UNIFORM_TOP_ONLY
+	supports_variations_flags = CLOTHING_DIGITIGRADE_VARIATION_NO_NEW_ICON
+
 /obj/item/clothing/under/rank/medical/scrubs/coroner
 	name = "coroner scrubs"
 	desc = "It's made of a special fiber that provides minor protection against biohazards. This one is as dark as an emo's poetry."
@@ -104,10 +120,9 @@
 	name = "chemist's jumpsuit"
 	icon_state = "chemistry"
 	inhand_icon_state = "w_suit"
-	armor_type = /datum/armor/medical_chemist
+	armor_type = /datum/armor/clothing_under/medical_chemist
 
-/datum/armor/medical_chemist
-	bio = 10
+/datum/armor/clothing_under/medical_chemist
 	fire = 50
 	acid = 65
 

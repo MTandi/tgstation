@@ -155,6 +155,14 @@
 /turf/open/floor/noslip/MakeSlippery(wet_setting, min_wet_time, wet_time_to_add, max_wet_time, permanent)
 	return
 
+/turf/open/floor/noslip/tram/Initialize(mapload)
+	. = ..()
+	var/current_holiday_color = request_station_colors(src, PATTERN_VERTICAL_STRIPE) || request_holiday_colors(src, PATTERN_VERTICAL_STRIPE)
+	if(current_holiday_color)
+		color = current_holiday_color
+	else
+		color = "#EFB341"
+
 /turf/open/floor/oldshuttle
 	icon = 'icons/turf/shuttleold.dmi'
 	icon_state = "floor"
@@ -319,3 +327,12 @@
 
 /turf/open/floor/iron/tgmcemblem/center
 	icon_state = "tgmc_center"
+
+/turf/open/floor/asphalt
+	name = "asphalt"
+	desc = "Melted down oil can, in some cases, be used to pave road surfaces."
+	icon_state = "asphalt"
+
+/turf/open/floor/asphalt/lavaland
+	initial_gas_mix = LAVALAND_DEFAULT_ATMOS
+	baseturfs = /turf/open/misc/asteroid/basalt

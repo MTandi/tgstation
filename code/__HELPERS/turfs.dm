@@ -210,37 +210,53 @@ Turf and target are separate in case you want to teleport some distance from a t
  * if the bounds are odd, the true middle turf of the atom is returned
 **/
 /proc/get_turf_pixel(atom/checked_atom)
-	if(!istype(checked_atom))
-		return
-
-	//Find coordinates
 	var/turf/atom_turf = get_turf(checked_atom) //use checked_atom's turfs, as it's coords are the same as checked_atom's AND checked_atom's coords are lost if it is inside another atom
 	if(!atom_turf)
 		return null
+	if(checked_atom.flags_1 & IGNORE_TURF_PIXEL_OFFSET_1)
+		return atom_turf
 
+	var/list/offsets = get_visual_offset(checked_atom)
+	return pixel_offset_turf(atom_turf, offsets)
+
+/**
+ * Returns how visually "off" the atom is from its source turf as a list of x, y (in pixel steps)
+ * it takes into account:
+ * Pixel_x/y
+ * Matrix x/y
+ * Icon width/height
+**/
+/proc/get_visual_offset(atom/checked_atom)
 	//Find checked_atom's matrix so we can use it's X/Y pixel shifts
 	var/matrix/atom_matrix = matrix(checked_atom.transform)
 
-	var/pixel_x_offset = checked_atom.pixel_x + atom_matrix.get_x_shift()
-	var/pixel_y_offset = checked_atom.pixel_y + atom_matrix.get_y_shift()
+	var/pixel_x_offset = checked_atom.pixel_x + checked_atom.pixel_w + atom_matrix.get_x_shift()
+	var/pixel_y_offset = checked_atom.pixel_y + checked_atom.pixel_z + atom_matrix.get_y_shift()
 
 	//Irregular objects
-	var/icon/checked_atom_icon = icon(checked_atom.icon, checked_atom.icon_state)
-	var/checked_atom_icon_height = checked_atom_icon.Height()
-	var/checked_atom_icon_width = checked_atom_icon.Width()
+	var/list/icon_dimensions = get_icon_dimensions(checked_atom.icon)
+	var/checked_atom_icon_height = icon_dimensions["height"]
+	var/checked_atom_icon_width = icon_dimensions["width"]
 	if(checked_atom_icon_height != world.icon_size || checked_atom_icon_width != world.icon_size)
 		pixel_x_offset += ((checked_atom_icon_width / world.icon_size) - 1) * (world.icon_size * 0.5)
 		pixel_y_offset += ((checked_atom_icon_height / world.icon_size) - 1) * (world.icon_size * 0.5)
 
-	//DY and DX
-	var/rough_x = round(round(pixel_x_offset, world.icon_size) / world.icon_size)
-	var/rough_y = round(round(pixel_y_offset, world.icon_size) / world.icon_size)
+	return list(pixel_x_offset, pixel_y_offset)
 
-	var/final_x = clamp(atom_turf.x + rough_x, 1, world.maxx)
-	var/final_y = clamp(atom_turf.y + rough_y, 1, world.maxy)
+/**
+ * Takes a turf, and a list of x and y pixel offsets and returns the turf that the offset position best lands in
+**/
+/proc/pixel_offset_turf(turf/offset_from, list/offsets)
+	//DY and DX
+	var/rough_x = round(round(offsets[1], world.icon_size) / world.icon_size)
+	var/rough_y = round(round(offsets[2], world.icon_size) / world.icon_size)
+
+	var/final_x = clamp(offset_from.x + rough_x, 1, world.maxx)
+	var/final_y = clamp(offset_from.y + rough_y, 1, world.maxy)
 
 	if(final_x || final_y)
-		return locate(final_x, final_y, atom_turf.z)
+		return locate(final_x, final_y, offset_from.z)
+	return offset_from
 
 ///Returns a turf based on text inputs, original turf and viewing client
 /proc/parse_caught_click_modifiers(list/modifiers, turf/origin, client/viewing_client)
@@ -386,8 +402,8 @@ Turf and target are separate in case you want to teleport some distance from a t
 /**
  * Checks whether or not a particular typepath or subtype of it is present on a turf
  *
- * Returns TRUE if an instance of the desired type or a subtype of it is found
- * Returns FALSE if the type is not found, or if no turf is supplied
+ * Returns the first instance located if an instance of the desired type or a subtype of it is found
+ * Returns null if the type is not found, or if no turf is supplied
  *
  * Arguments:
  * * location - The turf to be checked for the desired type
@@ -395,7 +411,23 @@ Turf and target are separate in case you want to teleport some distance from a t
  */
 /proc/is_type_on_turf(turf/location, type_to_find)
 	if(!location)
-		return FALSE
-	if(locate(type_to_find) in location)
-		return TRUE
-	return FALSE
+		return
+	var/found_type = locate(type_to_find) in location
+	return found_type
+
+/**
+ * get_blueprint_data
+ * Gets a list of turfs around a central turf and gets the blueprint data in a list
+ * Args:
+ * - central_turf: The center turf we're getting data from.
+ * - viewsize: The viewsize we're getting the turfs around central_turf of.
+ */
+/proc/get_blueprint_data(turf/central_turf, viewsize)
+	var/list/blueprint_data_returned = list()
+	var/list/dimensions = getviewsize(viewsize)
+	var/horizontal_radius = dimensions[1] / 2
+	var/vertical_radius = dimensions[2] / 2
+	for(var/turf/nearby_turf as anything in RECT_TURFS(horizontal_radius, vertical_radius, central_turf))
+		if(nearby_turf.blueprint_data)
+			blueprint_data_returned += nearby_turf.blueprint_data
+	return blueprint_data_returned

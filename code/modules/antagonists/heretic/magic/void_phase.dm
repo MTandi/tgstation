@@ -1,6 +1,6 @@
 /datum/action/cooldown/spell/pointed/void_phase
 	name = "Void Phase"
-	desc = "Let's you blink to your pointed destination, causes 3x3 aoe damage bubble \
+	desc = "Lets you blink to your pointed destination, causes 3x3 aoe damage bubble \
 		around your pointed destination and your current location. \
 		It has a minimum range of 3 tiles and a maximum range of 9 tiles."
 	background_icon_state = "bg_heretic"
@@ -12,8 +12,8 @@
 	school = SCHOOL_FORBIDDEN
 	cooldown_time = 30 SECONDS
 
-	invocation = "RE'L'TY PH'S'E."
-	invocation_type = INVOCATION_WHISPER
+	invocation = "Sunya'sthiti!"
+	invocation_type = INVOCATION_SHOUT
 	spell_requirements = NONE
 
 	cast_range = 9

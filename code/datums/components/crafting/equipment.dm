@@ -13,6 +13,16 @@
 	..()
 	blacklist |= subtypesof(/obj/item/shield/riot)
 
+/datum/crafting_recipe/improvisedshield
+	name = "Improvised Shield"
+	result = /obj/item/shield/improvised
+	reqs = list(
+		/obj/item/stack/sheet/iron = 10,
+		/obj/item/stack/sticky_tape = 2,
+	)
+	time = 4 SECONDS
+	category = CAT_EQUIPMENT
+
 /datum/crafting_recipe/radiogloves
 	name = "Radio Gloves"
 	result = /obj/item/clothing/gloves/radio
@@ -48,21 +58,51 @@
 		/obj/item/stack/rods = 8,
 		/obj/item/stock_parts/servo = 2,
 		/obj/item/stock_parts/capacitor = 1,
+		/obj/item/stock_parts/power_store/cell = 1,
 	)
 	parts = list(
 		/obj/item/stock_parts/servo = 2,
 		/obj/item/stock_parts/capacitor = 1,
+		/obj/item/stock_parts/power_store/cell = 1,
 	)
 	tool_behaviors = list(TOOL_WELDER, TOOL_SCREWDRIVER, TOOL_WRENCH)
 	time = 20 SECONDS
 	category = CAT_EQUIPMENT
 
-/datum/crafting_recipe/freezer_cabinat
-	name = "Freezer Cabinet"
+/datum/crafting_recipe/secured_freezer_cabinet
+	name = "Secure Freezer Cabinet"
 	result = /obj/structure/closet/secure_closet/freezer/empty
 	reqs = list(
-		/obj/item/stack/sheet/iron = 2,
+		/obj/item/stack/sheet/iron = 5,
 		/obj/item/assembly/igniter/condenser = 1,
+		/obj/item/electronics/airlock = 1,
+	)
+	parts = list(
+		/obj/item/electronics/airlock = 1,
+	)
+	time = 5 SECONDS
+	category = CAT_EQUIPMENT
+
+/datum/crafting_recipe/barbeque_grill
+	name = "Barbeque grill"
+	result = /obj/machinery/grill
+	reqs = list(
+		/obj/item/stack/sheet/iron = 5,
+		/obj/item/stack/rods = 5,
+		/obj/item/assembly/igniter = 1,
+	)
+	time = 7 SECONDS
+	category = CAT_EQUIPMENT
+
+/datum/crafting_recipe/secure_closet
+	name = "Secure Closet"
+	result = /obj/structure/closet/secure_closet
+	reqs = list(
+		/obj/item/stack/sheet/iron = 5,
+		/obj/item/electronics/airlock = 1,
+	)
+	parts = list(
+		/obj/item/electronics/airlock = 1,
 	)
 	time = 5 SECONDS
 	category = CAT_EQUIPMENT
@@ -209,3 +249,25 @@
 	tool_paths = list(/obj/item/bikehorn)
 	time = 40 SECONDS
 	category = CAT_EQUIPMENT
+
+/datum/crafting_recipe/rebar_quiver
+	name = "Rebar Storage Quiver"
+	result = /obj/item/storage/bag/rebar_quiver
+	time = 10
+	reqs = list(
+		/obj/item/tank/internals/oxygen = 1,
+		/obj/item/stack/cable_coil = 15,
+	)
+	category = CAT_EQUIPMENT
+	tool_behaviors = list(TOOL_WELDER, TOOL_WIRECUTTER)
+
+/datum/crafting_recipe/arrow_quiver
+	name = "Archery Quiver"
+	result = /obj/item/storage/bag/quiver/lesser
+	time = 10
+	reqs = list(
+		/obj/item/stack/sheet/leather = 4,
+		/obj/item/stack/sheet/cardboard = 4
+	)
+	category = CAT_EQUIPMENT
+	tool_behaviors = list(TOOL_WELDER, TOOL_WIRECUTTER)

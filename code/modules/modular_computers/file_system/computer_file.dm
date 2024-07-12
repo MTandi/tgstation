@@ -19,17 +19,12 @@
 /datum/computer_file/New()
 	..()
 	uid = file_uid++
-	RegisterSignal(src, COMSIG_MODULAR_COMPUTER_FILE_ADDED, PROC_REF(on_install))
+	RegisterSignal(src, COMSIG_COMPUTER_FILE_STORE, PROC_REF(on_install))
 
 /datum/computer_file/Destroy(force)
 	if(computer)
-		if(src == computer.active_program)
-			computer.active_program = null
-		if(src in computer.idle_threads)
-			computer.idle_threads.Remove(src)
 		computer = null
 	if(disk_host)
-		disk_host.remove_file(src)
 		disk_host = null
 	return ..()
 
@@ -55,9 +50,10 @@
 	return temp
 
 ///Called post-installation of an application in a computer, after 'computer' var is set.
-/datum/computer_file/proc/on_install()
+/datum/computer_file/proc/on_install(datum/computer_file/source, obj/item/modular_computer/computer_installing)
 	SIGNAL_HANDLER
-	return
+	SHOULD_CALL_PARENT(TRUE)
+	computer_installing.stored_files.Add(src)
 
 /**
  * Called when examining a modular computer
@@ -70,9 +66,9 @@
 /datum/computer_file/proc/on_examine(obj/item/modular_computer/source, mob/user)
 	return null
 
-/// Called when attacking a tablet with an item, checking if any application uses it. Return TRUE to cancel the attack chain.
-/datum/computer_file/proc/application_attackby(obj/item/attacking_item, mob/living/user)
-	return FALSE
+/// Called on modular computer item_interaction, checking if any application uses the given item. Uses the item interaction chain flags.
+/datum/computer_file/proc/application_item_interaction(mob/living/user, obj/item/tool, list/modifiers)
+	return NONE
 
 /**
  * Implement this when your program has an object that the user can eject.
@@ -91,6 +87,8 @@
  * * background - Whether the app is running in the background.
  */
 /datum/computer_file/program/proc/event_powerfailure()
+	if(program_flags & PROGRAM_RUNS_WITHOUT_POWER)
+		return
 	kill_program()
 
 /**

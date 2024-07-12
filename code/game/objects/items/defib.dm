@@ -28,7 +28,7 @@
 	/// If the cell can be removed via screwdriver
 	var/cell_removable = TRUE
 	var/obj/item/shockpaddles/paddles
-	var/obj/item/stock_parts/cell/high/cell
+	var/obj/item/stock_parts/power_store/cell/cell
 	/// If true, revive through space suits, allow for combat shocking
 	var/combat = FALSE
 	/// How long does it take to recharge
@@ -111,7 +111,7 @@
 
 /obj/item/defibrillator/CheckParts(list/parts_list)
 	..()
-	cell = locate(/obj/item/stock_parts/cell) in contents
+	cell = locate(/obj/item/stock_parts/power_store) in contents
 	update_power()
 
 /obj/item/defibrillator/ui_action_click()
@@ -136,11 +136,10 @@
 		ui_action_click() //checks for this are handled in defibrillator.mount.dm
 	return ..()
 
-/obj/item/defibrillator/MouseDrop(obj/over_object)
-	. = ..()
+/obj/item/defibrillator/mouse_drop_dragged(atom/over_object, mob/user, src_location, over_location, params)
 	if(ismob(loc))
 		var/mob/M = loc
-		if(!M.incapacitated() && istype(over_object, /atom/movable/screen/inventory/hand))
+		if(istype(over_object, /atom/movable/screen/inventory/hand))
 			var/atom/movable/screen/inventory/hand/H = over_object
 			M.putItemFromInventoryInHandIfPossible(src, H.held_index)
 
@@ -156,37 +155,41 @@
 	update_power()
 	return TRUE
 
-/obj/item/defibrillator/attackby(obj/item/W, mob/user, params)
-	if(W == paddles)
+/obj/item/defibrillator/item_interaction(mob/living/user, obj/item/item, list/modifiers)
+	if(item == paddles)
 		toggle_paddles()
-	else if(istype(W, /obj/item/stock_parts/cell))
-		var/obj/item/stock_parts/cell/C = W
-		if(cell)
-			to_chat(user, span_warning("[src] already has a cell!"))
-		else
-			if(C.maxcharge < paddles.revivecost)
-				to_chat(user, span_notice("[src] requires a higher capacity cell."))
-				return
-			if(!user.transferItemToLoc(W, src))
-				return
-			cell = W
-			to_chat(user, span_notice("You install a cell in [src]."))
-			update_power()
-	else
-		return ..()
+		return NONE
+	if(!istype(item, /obj/item/stock_parts/power_store/cell))
+		return NONE
 
-/obj/item/defibrillator/emag_act(mob/user)
-	if(safety)
-		safety = FALSE
-		to_chat(user, span_warning("You silently disable [src]'s safety protocols with the cryptographic sequencer."))
-	else
-		safety = TRUE
-		to_chat(user, span_notice("You silently enable [src]'s safety protocols with the cryptographic sequencer."))
+	var/obj/item/stock_parts/power_store/cell/new_cell = item
+	if(!isnull(cell))
+		to_chat(user, span_warning("[src] already has a cell!"))
+		return ITEM_INTERACT_BLOCKING
+
+	if(new_cell.maxcharge < paddles.revivecost)
+		to_chat(user, span_notice("[src] requires a higher capacity cell."))
+		return ITEM_INTERACT_BLOCKING
+	if(!user.transferItemToLoc(new_cell, src))
+		return NONE
+	cell = new_cell
+	to_chat(user, span_notice("You install a cell in [src]."))
+	update_power()
+	return ITEM_INTERACT_SUCCESS
+
+/obj/item/defibrillator/emag_act(mob/user, obj/item/card/emag/emag_card)
+
+	safety = !safety
+
+	var/enabled_or_disabled = (safety ? "enabled" : "disabled")
+	balloon_alert(user, "safety protocols [enabled_or_disabled]")
+
+	return TRUE
 
 /obj/item/defibrillator/emp_act(severity)
 	. = ..()
 	if(cell && !(. & EMP_PROTECT_CONTENTS))
-		deductcharge(1000 / severity)
+		deductcharge(STANDARD_CELL_CHARGE / severity)
 	if (. & EMP_PROTECT_SELF)
 		return
 
@@ -238,15 +241,15 @@
 	return ..()
 
 /obj/item/defibrillator/proc/deductcharge(chrgdeductamt)
-	if(cell)
-		if(cell.charge < (paddles.revivecost+chrgdeductamt))
-			powered = FALSE
-			update_power()
-		if(cell.use(chrgdeductamt))
-			update_power()
-			return TRUE
-		else
-			return FALSE
+	if(QDELETED(cell))
+		return
+
+	if(cell.charge < (paddles.revivecost + chrgdeductamt))
+		powered = FALSE
+	if(!cell.use(chrgdeductamt))
+		powered = FALSE
+
+	update_power()
 
 /obj/item/defibrillator/proc/cooldowncheck()
 		addtimer(CALLBACK(src, PROC_REF(finish_charging)), cooldown_duration)
@@ -294,7 +297,7 @@
 
 /obj/item/defibrillator/compact/combat
 	name = "combat defibrillator"
-	desc = "A belt-equipped blood-red defibrillator. Can revive through thick clothing, has an experimental self-recharging battery, and can be utilized in combat via applying the paddles in a disarming or aggressive manner."
+	desc = "A belt-equipped blood-red defibrillator. Can revive through thick clothing, has an experimental self-recharging battery, and can be utilized as a weapon via applying the paddles while in a combat stance."
 	icon_state = "defibcombat" //needs defib inhand sprites
 	inhand_icon_state = null
 	worn_icon_state = "defibcombat"
@@ -311,17 +314,12 @@
 
 /obj/item/defibrillator/compact/combat/loaded/Initialize(mapload)
 	. = ..()
-	cell = new /obj/item/stock_parts/cell/infinite(src)
+	cell = new /obj/item/stock_parts/power_store/cell/infinite(src)
 	update_power()
-
-/obj/item/defibrillator/compact/combat/loaded/attackby(obj/item/W, mob/user, params)
-	if(W == paddles)
-		toggle_paddles()
-		return
 
 /obj/item/defibrillator/compact/combat/loaded/nanotrasen
 	name = "elite Nanotrasen defibrillator"
-	desc = "A belt-equipped state-of-the-art defibrillator. Can revive through thick clothing, has an experimental self-recharging battery, and can be utilized in combat via applying the paddles in a disarming or aggressive manner."
+	desc = "A belt-equipped state-of-the-art defibrillator. Can revive through thick clothing, has an experimental self-recharging battery, and can be utilized as a weapon via applying the paddles while in a combat stance."
 	icon_state = "defibnt" //needs defib inhand sprites
 	inhand_icon_state = null
 	worn_icon_state = "defibnt"
@@ -345,7 +343,7 @@
 	resistance_flags = INDESTRUCTIBLE
 	base_icon_state = "defibpaddles"
 
-	var/revivecost = 1000
+	var/revivecost = STANDARD_CELL_CHARGE * 0.1
 	var/cooldown = FALSE
 	var/busy = FALSE
 	var/obj/item/defibrillator/defib
@@ -355,7 +353,7 @@
 
 /obj/item/shockpaddles/Initialize(mapload)
 	. = ..()
-	AddElement(/datum/element/update_icon_updates_onmob, ITEM_SLOT_HANDS|ITEM_SLOT_BACK)
+	AddElement(/datum/element/update_icon_updates_onmob, ITEM_SLOT_BACK)
 	AddComponent(/datum/component/two_handed, force_unwielded=8, force_wielded=12)
 
 /obj/item/shockpaddles/Destroy()
@@ -367,6 +365,7 @@
 	if(!req_defib)
 		return
 	RegisterSignal(user, COMSIG_MOVABLE_MOVED, PROC_REF(check_range))
+	RegisterSignal(defib.loc, COMSIG_MOVABLE_MOVED, PROC_REF(check_range))
 
 /obj/item/shockpaddles/Moved(atom/old_loc, movement_dir, forced, list/old_locs, momentum_change = TRUE)
 	. = ..()
@@ -433,6 +432,7 @@
 	. = ..()
 	if(user)
 		UnregisterSignal(user, COMSIG_MOVABLE_MOVED)
+		UnregisterSignal(defib.loc, COMSIG_MOVABLE_MOVED)
 	if(req_defib)
 		if(user)
 			to_chat(user, span_notice("The paddles snap back into the main unit."))
@@ -488,7 +488,7 @@
 		return
 
 	if(H.can_defib() == DEFIB_POSSIBLE)
-		H.notify_ghost_cloning("Your heart is being defibrillated!")
+		H.notify_revival("Your heart is being defibrillated!")
 		H.grab_ghost() // Shove them back in their body.
 
 	do_help(H, user)
@@ -592,6 +592,9 @@
 						playsound(src, 'sound/machines/defib_failed.ogg', 50, FALSE)
 						do_cancel()
 						return
+			if(SEND_SIGNAL(H, COMSIG_DEFIBRILLATOR_PRE_HELP_ZAP, user, src) & COMPONENT_DEFIB_STOP)
+				do_cancel()
+				return
 			if(H.stat == DEAD)
 				H.visible_message(span_warning("[H]'s body convulses a bit."))
 				playsound(src, SFX_BODYFALL, 50, TRUE)
@@ -628,17 +631,19 @@
 					var/total_brute = H.getBruteLoss()
 					var/total_burn = H.getFireLoss()
 
+					var/need_mob_update = FALSE
 					//If the body has been fixed so that they would not be in crit when defibbed, give them oxyloss to put them back into crit
 					if (H.health > HALFWAYCRITDEATH)
-						H.adjustOxyLoss(H.health - HALFWAYCRITDEATH, 0)
+						need_mob_update += H.adjustOxyLoss(H.health - HALFWAYCRITDEATH, updating_health = FALSE)
 					else
 						var/overall_damage = total_brute + total_burn + H.getToxLoss() + H.getOxyLoss()
 						var/mobhealth = H.health
-						H.adjustOxyLoss((mobhealth - HALFWAYCRITDEATH) * (H.getOxyLoss() / overall_damage), 0)
-						H.adjustToxLoss((mobhealth - HALFWAYCRITDEATH) * (H.getToxLoss() / overall_damage), 0, TRUE) // force tox heal for toxin lovers too
-						H.adjustFireLoss((mobhealth - HALFWAYCRITDEATH) * (total_burn / overall_damage), 0)
-						H.adjustBruteLoss((mobhealth - HALFWAYCRITDEATH) * (total_brute / overall_damage), 0)
-					H.updatehealth() // Previous "adjust" procs don't update health, so we do it manually.
+						need_mob_update += H.adjustOxyLoss((mobhealth - HALFWAYCRITDEATH) * (H.getOxyLoss() / overall_damage), updating_health = FALSE)
+						need_mob_update += H.adjustToxLoss((mobhealth - HALFWAYCRITDEATH) * (H.getToxLoss() / overall_damage), updating_health = FALSE, forced = TRUE) // force tox heal for toxin lovers too
+						need_mob_update += H.adjustFireLoss((mobhealth - HALFWAYCRITDEATH) * (total_burn / overall_damage), updating_health = FALSE)
+						need_mob_update += H.adjustBruteLoss((mobhealth - HALFWAYCRITDEATH) * (total_brute / overall_damage), updating_health = FALSE)
+					if(need_mob_update)
+						H.updatehealth() // Previous "adjust" procs don't update health, so we do it manually.
 					user.visible_message(span_notice("[req_defib ? "[defib]" : "[src]"] pings: Resuscitation successful."))
 					playsound(src, 'sound/machines/defib_success.ogg', 50, FALSE)
 					H.set_heartattack(FALSE)
@@ -648,7 +653,10 @@
 					H.emote("gasp")
 					H.set_jitter_if_lower(200 SECONDS)
 					SEND_SIGNAL(H, COMSIG_LIVING_MINOR_SHOCK)
-					user.add_mood_event("saved_life", /datum/mood_event/saved_life)
+					if(HAS_MIND_TRAIT(user, TRAIT_MORBID))
+						user.add_mood_event("morbid_saved_life", /datum/mood_event/morbid_saved_life)
+					else
+						user.add_mood_event("saved_life", /datum/mood_event/saved_life)
 					log_combat(user, H, "revived", defib)
 				do_success()
 				return
