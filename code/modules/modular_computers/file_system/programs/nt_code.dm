@@ -10,12 +10,11 @@
 	tgui_id = "NtosCode"
 	program_icon = "code"
 	/// Internal integrated circuit to run the programs on the laptop
-	var/obj/item/integrated_circuit/admin/circuit
+	var/obj/item/integrated_circuit/circuit
 
-/datum/computer_file/program/nt_code/New()
+/datum/computer_file/program/nt_code/on_install(datum/computer_file/source, obj/item/modular_computer/computer_installing)
 	. = ..()
-	circuit = new(src)
-	circuit.set_shell(computer.shell)
+	circuit = computer.shell.attached_circuit
 
 /datum/computer_file/program/nt_code/ui_assets(mob/user)
 	return circuit.ui_assets(user)

@@ -2578,6 +2578,7 @@
 /obj/item/organ/internal/cyberimp/bci{
 	pixel_y = 5
 	},
+/obj/item/modular_computer/laptop,
 /turf/open/floor/iron/dark,
 /area/station/science/explab)
 "XR" = (

@@ -9,7 +9,7 @@ export const NtosCode = (props) => {
           backgroundImage: 'none',
         }}
       >
-        <IntegratedCircuitContent />
+        <IntegratedCircuitContent props={props} />
       </NtosWindow.Content>
     </NtosWindow>
   );
