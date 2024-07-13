@@ -12,15 +12,10 @@
 	/// Internal integrated circuit to run the programs on the laptop
 	var/obj/item/integrated_circuit/admin/circuit
 
-
 /datum/computer_file/program/nt_code/New()
 	. = ..()
-	AddComponent(/datum/component/shell, list(
-		new /obj/item/circuit_component/controller()
-	), SHELL_CAPACITY_MEDIUM)
-
 	circuit = new(src)
-	circuit.set_shell(src)
+	circuit.set_shell(computer.shell)
 
 /datum/computer_file/program/nt_code/ui_assets(mob/user)
 	return circuit.ui_assets(user)
