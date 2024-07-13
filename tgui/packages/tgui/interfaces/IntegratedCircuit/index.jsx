@@ -18,7 +18,21 @@ import { DisplayComponent } from './DisplayComponent';
 import { ObjectComponent } from './ObjectComponent';
 import { VariableMenu } from './VariableMenu';
 
-export class IntegratedCircuit extends Component {
+export const IntegratedCircuit = (props) => {
+  return (
+    <Window width={1200} height={800}>
+      <Window.Content
+        style={{
+          backgroundImage: 'none',
+        }}
+      >
+        <IntegratedCircuitContent props={props} />
+      </Window.Content>
+    </Window>
+  );
+};
+
+export class IntegratedCircuitContent extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -453,199 +467,186 @@ export class IntegratedCircuit extends Component {
     }
 
     return (
-      <Window
-        width={1200}
-        height={800}
-        buttons={
-          <Box width="160px" position="absolute" top="5px" height="22px">
-            <Stack>
-              <Stack.Item grow>
-                <Input
-                  fluid
-                  placeholder="Name"
-                  value={display_name}
-                  onChange={(e, value) =>
-                    act('set_display_name', { display_name: value })
-                  }
-                />
-              </Stack.Item>
-              <Stack.Item basis="24px">
-                <Button
-                  position="absolute"
-                  top={0}
-                  color="transparent"
-                  tooltip="Show Variables Menu"
-                  icon="cog"
-                  selected={variableMenuOpen}
-                  onClick={() =>
-                    this.setState((state) => ({
-                      variableMenuOpen: !state.variableMenuOpen,
-                    }))
-                  }
-                />
-              </Stack.Item>
-              <Stack.Item basis="24px">
-                <Button
-                  position="absolute"
-                  top={0}
-                  color="transparent"
-                  tooltip="Show Components Menu"
-                  icon="plus"
-                  selected={componentMenuOpen}
-                  onClick={() =>
-                    this.setState((state) => ({
-                      componentMenuOpen: !state.componentMenuOpen,
-                    }))
-                  }
-                />
-              </Stack.Item>
-              <Stack.Item basis="24px">
-                <Button
-                  position="absolute"
-                  top={0}
-                  color="transparent"
-                  tooltip="Enable Grid Aligning"
-                  icon="th-large"
-                  selected={grid_mode}
-                  onClick={() => act('toggle_grid_mode')}
-                />
-              </Stack.Item>
-              {!!is_admin && (
-                <Stack.Item>
-                  <Button
-                    position="absolute"
-                    top={0}
-                    color="transparent"
-                    onClick={() => act('save_circuit')}
-                    icon="save"
-                  />
-                </Stack.Item>
-              )}
-            </Stack>
-          </Box>
-        }
-      >
-        <Window.Content
-          style={{
-            backgroundImage: 'none',
-          }}
+      <>
+        <InfinitePlane
+          width="100%"
+          height="100%"
+          backgroundImage={resolveAsset('grid_background.png')}
+          imageWidth={900}
+          onZoomChange={this.handleZoomChange}
+          onBackgroundMoved={this.handleBackgroundMoved}
+          initialLeft={screen_x}
+          initialTop={screen_y}
         >
-          <InfinitePlane
-            width="100%"
-            height="100%"
-            backgroundImage={resolveAsset('grid_background.png')}
-            imageWidth={900}
-            onZoomChange={this.handleZoomChange}
-            onBackgroundMoved={this.handleBackgroundMoved}
-            initialLeft={screen_x}
-            initialTop={screen_y}
-          >
-            {components.map(
-              (comp, index) =>
-                comp && (
-                  <ObjectComponent
-                    key={index}
-                    {...comp}
-                    index={index + 1}
-                    onPortUpdated={this.handlePortLocation}
-                    onPortLoaded={this.handlePortLocation}
-                    onPortMouseDown={this.handlePortClick}
-                    onPortRightClick={this.handlePortRightClick}
-                    onPortMouseUp={this.handlePortUp}
-                    act={act}
-                    gridMode={grid_mode}
-                  />
-                ),
-            )}
-            {!!draggingComponent && (
-              <DisplayComponent
-                component={draggingComponent}
-                position="absolute"
-                left={`${mouseX - draggingOffsetX}px`}
-                top={`${mouseY - draggingOffsetY}px`}
-                onDisplayUpdated={this.handleDisplayLocation}
-                onDisplayLoaded={this.handleDisplayLocation}
-              />
-            )}
-            <Connections connections={connections} />
-          </InfinitePlane>
-          {!!examined_name && (
-            <CircuitInfo
+          {components.map(
+            (comp, index) =>
+              comp && (
+                <ObjectComponent
+                  key={index}
+                  {...comp}
+                  index={index + 1}
+                  onPortUpdated={this.handlePortLocation}
+                  onPortLoaded={this.handlePortLocation}
+                  onPortMouseDown={this.handlePortClick}
+                  onPortRightClick={this.handlePortRightClick}
+                  onPortMouseUp={this.handlePortUp}
+                  act={act}
+                  gridMode={grid_mode}
+                />
+              ),
+          )}
+          {!!draggingComponent && (
+            <DisplayComponent
+              component={draggingComponent}
               position="absolute"
-              className="CircuitInfo__Examined"
-              top={`${examined_rel_y}px`}
-              left={`${examined_rel_x}px`}
-              name={examined_name}
-              desc={examined_desc}
-              notices={examined_notices}
+              left={`${mouseX - draggingOffsetX}px`}
+              top={`${mouseY - draggingOffsetY}px`}
+              onDisplayUpdated={this.handleDisplayLocation}
+              onDisplayLoaded={this.handleDisplayLocation}
             />
           )}
-          {!!variableMenuOpen && (
-            <Box
-              position="absolute"
-              left={0}
-              bottom={0}
-              height="20%"
-              minHeight="175px"
-              minWidth="600px"
-              width="50%"
+          <Connections connections={connections} />
+        </InfinitePlane>
+        <Box width="256px" position="absolute" top="8px">
+          <Stack>
+            <Stack.Item grow>
+              <Input
+                fluid
+                placeholder="Name"
+                value={display_name}
+                onChange={(e, value) =>
+                  act('set_display_name', { display_name: value })
+                }
+              />
+            </Stack.Item>
+            <Stack.Item basis="24px">
+              <Button
+                position="absolute"
+                top={0}
+                color="transparent"
+                tooltip="Show Variables Menu"
+                icon="cog"
+                selected={variableMenuOpen}
+                onClick={() =>
+                  this.setState((state) => ({
+                    variableMenuOpen: !state.variableMenuOpen,
+                  }))
+                }
+              />
+            </Stack.Item>
+            <Stack.Item basis="24px">
+              <Button
+                position="absolute"
+                top={0}
+                color="transparent"
+                tooltip="Show Components Menu"
+                icon="plus"
+                selected={componentMenuOpen}
+                onClick={() =>
+                  this.setState((state) => ({
+                    componentMenuOpen: !state.componentMenuOpen,
+                  }))
+                }
+              />
+            </Stack.Item>
+            <Stack.Item basis="24px">
+              <Button
+                position="absolute"
+                top={0}
+                color="transparent"
+                tooltip="Enable Grid Aligning"
+                icon="th-large"
+                selected={grid_mode}
+                onClick={() => act('toggle_grid_mode')}
+              />
+            </Stack.Item>
+            {!!is_admin && (
+              <Stack.Item>
+                <Button
+                  position="absolute"
+                  top={0}
+                  color="transparent"
+                  onClick={() => act('save_circuit')}
+                  icon="save"
+                />
+              </Stack.Item>
+            )}
+          </Stack>
+        </Box>
+        {!!examined_name && (
+          <CircuitInfo
+            position="absolute"
+            className="CircuitInfo__Examined"
+            top={`${examined_rel_y}px`}
+            left={`${examined_rel_x}px`}
+            name={examined_name}
+            desc={examined_desc}
+            notices={examined_notices}
+          />
+        )}
+        {!!variableMenuOpen && (
+          <Box
+            position="absolute"
+            left={0}
+            bottom={0}
+            height="20%"
+            minHeight="175px"
+            minWidth="600px"
+            width="50%"
+            style={{
+              borderRadius: '0px 32px 0px 0px',
+              backgroundColor: 'rgba(0, 0, 0, 0.3)',
+              '-ms-user-select': 'none',
+            }}
+            unselectable="on"
+          >
+            <VariableMenu
+              variables={variables}
+              types={global_basic_types}
+              onClose={(event) => this.setState({ variableMenuOpen: false })}
+              onAddVariable={(name, type, listType, event) =>
+                act('add_variable', {
+                  variable_name: name,
+                  variable_datatype: type,
+                  is_list: listType === VARIABLE_LIST,
+                  is_assoc_list: listType === VARIABLE_ASSOC_LIST,
+                })
+              }
+              onRemoveVariable={(name, event) =>
+                act('remove_variable', {
+                  variable_name: name,
+                })
+              }
+              handleMouseDownSetter={this.onVarClickedSetter}
+              handleMouseDownGetter={this.onVarClickedGetter}
               style={{
                 borderRadius: '0px 32px 0px 0px',
-                backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                '-ms-user-select': 'none',
               }}
-              unselectable="on"
-            >
-              <VariableMenu
-                variables={variables}
-                types={global_basic_types}
-                onClose={(event) => this.setState({ variableMenuOpen: false })}
-                onAddVariable={(name, type, listType, event) =>
-                  act('add_variable', {
-                    variable_name: name,
-                    variable_datatype: type,
-                    is_list: listType === VARIABLE_LIST,
-                    is_assoc_list: listType === VARIABLE_ASSOC_LIST,
-                  })
-                }
-                onRemoveVariable={(name, event) =>
-                  act('remove_variable', {
-                    variable_name: name,
-                  })
-                }
-                handleMouseDownSetter={this.onVarClickedSetter}
-                handleMouseDownGetter={this.onVarClickedGetter}
-                style={{
-                  borderRadius: '0px 32px 0px 0px',
-                }}
-              />
-            </Box>
-          )}
-          {!!componentMenuOpen && (
-            <Box
-              position="absolute"
-              right={0}
-              top={0}
-              height="100%"
-              width="300px"
-              style={{
-                backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                '-ms-user-select': 'none',
-              }}
-              unselectable="on"
-            >
-              <ComponentMenu
-                components={
-                  (stored_designs && Object.keys(stored_designs)) || []
-                }
-                onClose={(event) => this.setState({ componentMenuOpen: false })}
-                onMouseDownComponent={this.handleMouseDownComponent}
-                showAll={is_admin}
-              />
-            </Box>
-          )}
-        </Window.Content>
-      </Window>
+            />
+          </Box>
+        )}
+        {!!componentMenuOpen && (
+          <Box
+            position="absolute"
+            right={0}
+            top={0}
+            height="100%"
+            width="300px"
+            style={{
+              backgroundColor: 'rgba(0, 0, 0, 0.3)',
+              '-ms-user-select': 'none',
+            }}
+            unselectable="on"
+          >
+            <ComponentMenu
+              components={(stored_designs && Object.keys(stored_designs)) || []}
+              onClose={(event) => this.setState({ componentMenuOpen: false })}
+              onMouseDownComponent={this.handleMouseDownComponent}
+              showAll={is_admin}
+            />
+          </Box>
+        )}
+      </>
     );
   }
 }

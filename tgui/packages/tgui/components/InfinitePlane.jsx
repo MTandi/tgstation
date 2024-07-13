@@ -169,7 +169,7 @@ export class InfinitePlane extends Component {
           {children}
         </div>
 
-        <Stack position="absolute" width="100%">
+        <Stack position="absolute" width="128px" top="8px" right="0">
           <Stack.Item>
             <Button icon="minus" onClick={this.handleZoomDecrease} />
           </Stack.Item>
@@ -179,7 +179,7 @@ export class InfinitePlane extends Component {
               value={zoom}
               maxValue={ZOOM_MAX_VAL}
             >
-              {zoom}x
+              {zoom.toFixed(1)}x
             </ProgressBar>
           </Stack.Item>
           <Stack.Item>
