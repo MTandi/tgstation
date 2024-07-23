@@ -4,8 +4,8 @@
 /obj/structure/grille
 	desc = "A flimsy framework of iron rods."
 	name = "grille"
-	icon = 'icons/obj/structures.dmi'
-	icon_state = "grille"
+	icon = 'icons/obj/smooth_structures/grille.dmi'
+	icon_state = "grille-0"
 	base_icon_state = "grille"
 	density = TRUE
 	anchored = TRUE
@@ -15,6 +15,9 @@
 	armor_type = /datum/armor/structure_grille
 	max_integrity = 50
 	integrity_failure = 0.4
+	smoothing_flags = SMOOTH_BITMASK
+	smoothing_groups = SMOOTH_GROUP_GRILLE
+	canSmoothWith = SMOOTH_GROUP_GRILLE + SMOOTH_GROUP_WINDOW_FULLTILE + SMOOTH_GROUP_WALLS
 	var/rods_type = /obj/item/stack/rods
 	var/rods_amount = 2
 	/// Whether or not we're disappearing but dramatically
@@ -46,10 +49,11 @@
 	. = ..()
 	if((updates & UPDATE_SMOOTHING) && (smoothing_flags & USES_SMOOTHING))
 		QUEUE_SMOOTH(src)
+		QUEUE_SMOOTH_NEIGHBORS(src)
 
-/obj/structure/grille/update_icon_state()
-	icon_state = "[base_icon_state][((atom_integrity / max_integrity) <= 0.5) ? "50_[rand(0, 3)]" : null]"
-	return ..()
+// /obj/structure/grille/update_icon_state()
+// 	icon_state = "[base_icon_state][((atom_integrity / max_integrity) <= 0.5) ? "50_[rand(0, 3)]" : null]"
+// 	return ..()
 
 /obj/structure/grille/examine(mob/user)
 	. = ..()
