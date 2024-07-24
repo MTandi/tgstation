@@ -12,7 +12,7 @@
 	underfloor_accessibility = UNDERFLOOR_INTERACTABLE
 	baseturfs = /turf/baseturf_bottom
 	smoothing_flags = SMOOTH_BITMASK
-	smoothing_groups = SMOOTH_GROUP_TURF_OPEN + SMOOTH_GROUP_PLATING
+	smoothing_groups = SMOOTH_GROUP_PLATING
 	canSmoothWith = SMOOTH_GROUP_PLATING
 	flags_1 = NONE
 	footstep = FOOTSTEP_PLATING
@@ -135,6 +135,7 @@
 /turf/open/floor/plating/foam
 	name = "metal foam plating"
 	desc = "Thin, fragile flooring created with metal foam. Designed to be easily replacable by tiling when applied to in a combat stance."
+	icon = 'icons/turf/floors.dmi'
 	icon_state = "foam_plating"
 	upgradable = FALSE
 	attachment_holes = FALSE
@@ -192,6 +193,7 @@
 /turf/open/floor/plating/reinforced //RCD Proof plating designed to be used on Multi-Z maps to protect the rooms below
 	name = "reinforced plating"
 	desc = "Thick, tough flooring created with multiple layers of metal."
+	icon = 'icons/turf/floors.dmi'
 	icon_state = "r_plate-0"
 
 	thermal_conductivity = 0.025
