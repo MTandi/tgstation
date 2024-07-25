@@ -80,13 +80,18 @@ const TankCompressorContent = (props) => {
           }}
           title={disk ? disk + ' (' + storage + ')' : 'No Disk Inserted'}
           buttons={
-            <Button
-              icon="eject"
-              disabled={!disk}
-              onClick={() => act('eject_disk')}
-            >
-              Eject Disk
-            </Button>
+            <>
+              <Button
+                icon="eject"
+                disabled={!disk}
+                onClick={() => act('eject_disk')}
+              >
+                Eject Disk
+              </Button>
+              <Button icon="atom" onClick={() => act('open_experiments')}>
+                Experiments
+              </Button>
+            </>
           }
         >
           <TankCompressorRecords />

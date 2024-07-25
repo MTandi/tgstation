@@ -164,6 +164,17 @@
 		playsound(source, 'sound/machines/ping.ogg', 25)
 		source.say("New unique autopsy successfully catalogued.")
 
+/// Hooks on a successful ordnance experiment
+/datum/component/experiment_handler/proc/explosion_handle(obj/source, list/arguments)
+	SIGNAL_HANDLER
+
+	if (action_experiment(source, arguments))
+		playsound(source, 'sound/machines/ping.ogg', 25)
+		source.say("Ordnance experiment successful.")
+
+	source.say("Internal explosion detected and absorbed.")
+	SSexplosions.shake_the_room(get_turf(source), 1, 8, 0.5, 0.25, FALSE)
+	return COMSIG_CANCEL_EXPLOSION
 
 /**
  * Announces a message to all experiment handlers

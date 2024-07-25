@@ -20,6 +20,9 @@
 	var/obj/item/tank/inserted_tank
 	/// Reference to a disk we are going to print to.
 	var/obj/item/computer_disk/inserted_disk
+	/// Connected techweb for gas shell experiments
+	var/datum/techweb/linked_techweb
+	var/datum/component/experiment_handler/experiment_handler
 
 	pipe_flags = PIPING_ONE_PER_TURF | PIPING_DEFAULT_LAYER_ONLY
 
@@ -28,7 +31,30 @@
 	leaked_gas_buffer = new(200)
 	compressor_record = list()
 
-	RegisterSignal(src, COMSIG_ATOM_INTERNAL_EXPLOSION, PROC_REF(explosion_handle))
+/obj/machinery/atmospherics/components/binary/tank_compressor/post_machine_initialize()
+	. = ..()
+	if(!CONFIG_GET(flag/no_default_techweb_link) && !linked_techweb)
+		CONNECT_TO_RND_SERVER_ROUNDSTART(linked_techweb, src)
+
+	var/list/experiment_signals = list(
+		COMSIG_ATOM_INTERNAL_EXPLOSION = TYPE_PROC_REF(/datum/component/experiment_handler, explosion_handle),
+	)
+	experiment_handler = AddComponent(
+		/datum/component/experiment_handler, \
+		allowed_experiments = list(/datum/experiment/ordnance), \
+		config_flags = EXPERIMENT_CONFIG_ALWAYS_ACTIVE, \
+		config_mode = EXPERIMENT_CONFIG_ALTCLICK, \
+		experiment_signals = experiment_signals, \
+	)
+
+/obj/machinery/atmospherics/components/binary/tank_compressor/Destroy()
+	. = ..()
+	QDEL_NULL(experiment_handler)
+
+/obj/machinery/atmospherics/components/binary/tank_compressor/multitool_act(mob/living/user, obj/item/multitool/tool)
+	if(!QDELETED(tool.buffer) && istype(tool.buffer, /datum/techweb))
+		linked_techweb = tool.buffer
+	return TRUE
 
 /obj/machinery/atmospherics/components/binary/tank_compressor/examine()
 	. = ..()
@@ -142,13 +168,6 @@
 	last_recorded_pressure = tank_air.return_pressure()
 	active = FALSE
 	return
-
-/// Use this to absorb explosions.
-/obj/machinery/atmospherics/components/binary/tank_compressor/proc/explosion_handle(atom/source, list/arguments)
-	SIGNAL_HANDLER
-	say("Internal explosion detected and absorbed.")
-	SSexplosions.shake_the_room(get_turf(src), 1, 8, 0.5, 0.25, FALSE)
-	return COMSIG_CANCEL_EXPLOSION
 
 /**
  * Everytime a tank is destroyed or a new tank is inserted, our buffer is flushed.
@@ -300,6 +319,8 @@
 				return
 			print(usr, record)
 			return TRUE
+		if("open_experiments")
+			experiment_handler.ui_interact(usr)
 
 /obj/machinery/atmospherics/components/binary/tank_compressor/ui_static_data()
 	var/list/data = list(
