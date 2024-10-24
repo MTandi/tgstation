@@ -3,10 +3,13 @@
 	name = "energy gun"
 	desc = "A basic energy-based gun."
 	icon = 'icons/obj/weapons/guns/energy.dmi'
+	pickup_sound = 'sound/items/handling/gun/gun_pick_up.ogg'
+	drop_sound = 'sound/items/handling/gun/gun_drop.ogg'
+	sound_vary = TRUE
 
 	/// What type of power cell this uses
-	var/obj/item/stock_parts/cell/cell
-	var/cell_type = /obj/item/stock_parts/cell
+	var/obj/item/stock_parts/power_store/cell
+	var/cell_type = /obj/item/stock_parts/power_store/cell
 	///if the weapon has custom icons for individual ammo types it can switch between. ie disabler beams, taser, laser/lethals, ect.
 	var/modifystate = FALSE
 	var/list/ammo_type = list(/obj/item/ammo_casing/energy)
@@ -74,7 +77,10 @@
 		recharge_newshot() //and try to charge a new shot
 		update_appearance()
 
-/obj/item/gun/energy/get_cell()
+/obj/item/gun/energy/get_cell(atom/movable/interface, mob/user)
+	if(istype(interface, /obj/item/inducer))
+		to_chat(user, span_alert("Error: unable to interface with [interface]."))
+		return null
 	return cell
 
 /obj/item/gun/energy/Initialize(mapload)

@@ -5,6 +5,7 @@
 	burn_modifier = 2
 	head_flags = HEAD_EYESPRITES|HEAD_DEBRAIN
 	biological_state = (BIO_FLESH|BIO_BLOODED)
+	teeth_count = 0
 
 /obj/item/bodypart/chest/snail
 	limb_id = SPECIES_SNAIL
@@ -51,6 +52,7 @@
 	is_dimorphic = FALSE
 	should_draw_greyscale = FALSE
 	head_flags = NONE
+	teeth_count = 0
 
 /obj/item/bodypart/chest/abductor
 	limb_id = SPECIES_ABDUCTOR
@@ -146,6 +148,7 @@
 ///LUMINESCENT
 /obj/item/bodypart/head/jelly/luminescent
 	limb_id = SPECIES_LUMINESCENT
+	teeth_count = 0
 
 /obj/item/bodypart/chest/jelly/luminescent
 	limb_id = SPECIES_LUMINESCENT
@@ -223,8 +226,8 @@
 	unarmed_attack_verbs = list("slash", "lash")
 	grappled_attack_verb = "lacerate"
 	unarmed_attack_effect = ATTACK_EFFECT_CLAW
-	unarmed_attack_sound = 'sound/weapons/slice.ogg'
-	unarmed_miss_sound = 'sound/weapons/slashmiss.ogg'
+	unarmed_attack_sound = 'sound/items/weapons/slice.ogg'
+	unarmed_miss_sound = 'sound/items/weapons/slashmiss.ogg'
 	burn_modifier = 1.25
 
 /obj/item/bodypart/arm/right/pod
@@ -232,8 +235,8 @@
 	unarmed_attack_verbs = list("slash", "lash")
 	grappled_attack_verb = "lacerate"
 	unarmed_attack_effect = ATTACK_EFFECT_CLAW
-	unarmed_attack_sound = 'sound/weapons/slice.ogg'
-	unarmed_miss_sound = 'sound/weapons/slashmiss.ogg'
+	unarmed_attack_sound = 'sound/items/weapons/slice.ogg'
+	unarmed_miss_sound = 'sound/items/weapons/slashmiss.ogg'
 	burn_modifier = 1.25
 
 /obj/item/bodypart/leg/left/pod
@@ -250,12 +253,15 @@
 	is_dimorphic = FALSE
 	should_draw_greyscale = FALSE
 	head_flags = HEAD_EYESPRITES|HEAD_EYEHOLES|HEAD_DEBRAIN
+	teeth_count = 0
+	bodypart_traits = list(TRAIT_ANTENNAE)
 
 /obj/item/bodypart/chest/fly
 	limb_id = SPECIES_FLYPERSON
 	is_dimorphic = TRUE
 	should_draw_greyscale = FALSE
 	wing_types = list(/obj/item/organ/external/wings/functional/fly)
+	bodypart_traits = list(TRAIT_TACKLING_FRAIL_ATTACKER)
 
 /obj/item/bodypart/arm/left/fly
 	limb_id = SPECIES_FLYPERSON
@@ -367,6 +373,7 @@
 	is_dimorphic = TRUE
 	burn_modifier = 1.25
 	head_flags = NONE
+	teeth_count = 0
 
 /obj/item/bodypart/chest/mushroom
 	limb_id = SPECIES_MUSHROOM
@@ -436,6 +443,8 @@
 	should_draw_greyscale = FALSE
 	dmg_overlay_type = null
 	head_flags = NONE
+	// too hard to drill through
+	teeth_count = 0
 
 /obj/item/bodypart/head/golem/Initialize(mapload)
 	worn_ears_offset = new(
@@ -493,7 +502,7 @@
 	limb_id = SPECIES_GOLEM
 	should_draw_greyscale = FALSE
 	dmg_overlay_type = null
-	bodypart_traits = list(TRAIT_CHUNKYFINGERS, TRAIT_FIST_MINING)
+	bodypart_traits = list(TRAIT_CHUNKYFINGERS, TRAIT_FIST_MINING, TRAIT_BOULDER_BREAKER)
 	unarmed_damage_low = 5
 	unarmed_damage_high = 14
 	unarmed_effectiveness = 20
@@ -526,7 +535,7 @@
 	limb_id = SPECIES_GOLEM
 	should_draw_greyscale = FALSE
 	dmg_overlay_type = null
-	bodypart_traits = list(TRAIT_CHUNKYFINGERS, TRAIT_FIST_MINING)
+	bodypart_traits = list(TRAIT_CHUNKYFINGERS, TRAIT_FIST_MINING, TRAIT_BOULDER_BREAKER)
 	unarmed_damage_low = 5
 	unarmed_damage_high = 14
 	unarmed_effectiveness = 20

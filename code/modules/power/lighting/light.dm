@@ -37,7 +37,7 @@
 	///Count of number of times switched on/off, this is used to calculate the probability the light burns out
 	var/switchcount = 0
 	///Cell reference
-	var/obj/item/stock_parts/cell/cell
+	var/obj/item/stock_parts/power_store/cell
 	/// If TRUE, then cell is null, but one is pretending to exist.
 	/// This is to defer emergency cell creation unless necessary, as it is very expensive.
 	var/has_mock_cell = TRUE
@@ -116,8 +116,8 @@
 	// Light projects out backwards from the dir of the light
 	set_light(l_dir = REVERSE_DIR(dir))
 	RegisterSignal(src, COMSIG_LIGHT_EATER_ACT, PROC_REF(on_light_eater))
-	RegisterSignal(src, COMSIG_HIT_BY_SABOTEUR, PROC_REF(on_saboteur))
 	AddElement(/datum/element/atmos_sensitive, mapload)
+	AddElement(/datum/element/contextual_screentip_bare_hands, rmb_text = "Remove bulb")
 	if(break_if_moved)
 		find_and_hang_on_wall(custom_drop_callback = CALLBACK(src, PROC_REF(knock_down)))
 
@@ -321,7 +321,7 @@
 
 /obj/machinery/light/get_cell()
 	if (has_mock_cell)
-		cell = new /obj/item/stock_parts/cell/emergency_light(src)
+		cell = new /obj/item/stock_parts/power_store/cell/emergency_light(src)
 		has_mock_cell = FALSE
 
 	return cell
@@ -331,15 +331,15 @@
 	. = ..()
 	switch(status)
 		if(LIGHT_OK)
-			. += "It is turned [on? "on" : "off"]."
+			. += span_notice("It is turned [on? "on" : "off"].")
 		if(LIGHT_EMPTY)
-			. += "The [fitting] has been removed."
+			. +=  span_notice("The [fitting] has been removed.")
 		if(LIGHT_BURNED)
-			. += "The [fitting] is burnt out."
+			. +=  span_danger("The [fitting] is burnt out.")
 		if(LIGHT_BROKEN)
-			. += "The [fitting] has been smashed."
+			. += span_danger("The [fitting] has been smashed.")
 	if(cell || has_mock_cell)
-		. += "Its backup power charge meter reads [has_mock_cell ? 100 : round((cell.charge / cell.maxcharge) * 100, 0.1)]%."
+		. +=  span_notice("Its backup power charge meter reads [has_mock_cell ? 100 : round((cell.charge / cell.maxcharge) * 100, 0.1)]%.")
 
 
 
@@ -421,7 +421,7 @@
 		new /obj/item/stack/cable_coil(loc, 1, "red")
 	transfer_fingerprints_to(new_light)
 
-	var/obj/item/stock_parts/cell/real_cell = get_cell()
+	var/obj/item/stock_parts/power_store/real_cell = get_cell()
 	if(!QDELETED(real_cell))
 		new_light.cell = real_cell
 		real_cell.forceMove(new_light)
@@ -447,13 +447,13 @@
 		if(BRUTE)
 			switch(status)
 				if(LIGHT_EMPTY)
-					playsound(loc, 'sound/weapons/smash.ogg', 50, TRUE)
+					playsound(loc, 'sound/items/weapons/smash.ogg', 50, TRUE)
 				if(LIGHT_BROKEN)
 					playsound(loc, 'sound/effects/hit_on_shattered_glass.ogg', 90, TRUE)
 				else
-					playsound(loc, 'sound/effects/glasshit.ogg', 90, TRUE)
+					playsound(loc, 'sound/effects/glass/glasshit.ogg', 90, TRUE)
 		if(BURN)
-			playsound(loc, 'sound/items/welder.ogg', 100, TRUE)
+			playsound(loc, 'sound/items/tools/welder.ogg', 100, TRUE)
 
 // returns if the light has power /but/ is manually turned off
 // if a light is turned off, it won't activate emergency power
@@ -482,8 +482,8 @@
 /obj/machinery/light/proc/use_emergency_power(power_usage_amount = LIGHT_EMERGENCY_POWER_USE)
 	if(!has_emergency_power(power_usage_amount))
 		return FALSE
-	var/obj/item/stock_parts/cell/real_cell = get_cell()
-	if(real_cell.charge > 2.5 * /obj/item/stock_parts/cell/emergency_light::maxcharge) //it's meant to handle 120 W, ya doofus
+	var/obj/item/stock_parts/power_store/real_cell = get_cell()
+	if(real_cell.charge > 2.5 * /obj/item/stock_parts/power_store/cell/emergency_light::maxcharge) //it's meant to handle 120 W, ya doofus
 		visible_message(span_warning("[src] short-circuits from too powerful of a power cell!"))
 		burn_out()
 		return FALSE
@@ -527,9 +527,9 @@
 // attack with hand - remove tube/bulb
 // if hands aren't protected and the light is on, burn the player
 
-/obj/machinery/light/attack_hand(mob/living/carbon/human/user, list/modifiers)
+/obj/machinery/light/attack_hand_secondary(mob/living/carbon/human/user, list/modifiers)
 	. = ..()
-	if(.)
+	if(. == SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN)
 		return
 	user.changeNext_move(CLICK_CD_MELEE)
 	add_fingerprint(user)
@@ -641,7 +641,7 @@
 
 	if(!skip_sound_and_sparks)
 		if(status == LIGHT_OK || status == LIGHT_BURNED)
-			playsound(loc, 'sound/effects/glasshit.ogg', 75, TRUE)
+			playsound(loc, 'sound/effects/glass/glasshit.ogg', 75, TRUE)
 		if(on)
 			do_sparks(3, TRUE, src)
 	status = LIGHT_BROKEN
@@ -680,17 +680,13 @@
 
 /obj/machinery/light/proc/on_light_eater(obj/machinery/light/source, datum/light_eater)
 	SIGNAL_HANDLER
-	. = COMPONENT_BLOCK_LIGHT_EATER
-	if(status == LIGHT_EMPTY)
-		return
-	var/obj/item/light/tube = drop_light_tube()
-	tube?.burn()
-	return
-
-/obj/machinery/light/proc/on_saboteur(datum/source, disrupt_duration)
-	SIGNAL_HANDLER
 	break_light_tube()
-	return COMSIG_SABOTEUR_SUCCESS
+	return COMPONENT_BLOCK_LIGHT_EATER
+
+/obj/machinery/light/on_saboteur(datum/source, disrupt_duration)
+	. = ..()
+	break_light_tube()
+	return TRUE
 
 /obj/machinery/light/proc/grey_tide(datum/source, list/grey_tide_areas)
 	SIGNAL_HANDLER
@@ -704,7 +700,10 @@
  * All the effects that occur when a light falls off a wall that it was hung onto.
  */
 /obj/machinery/light/proc/knock_down()
-	new /obj/item/wallframe/light_fixture(drop_location())
+	if (fitting == "bulb")
+		new /obj/item/wallframe/light_fixture/small(drop_location())
+	else
+		new /obj/item/wallframe/light_fixture(drop_location())
 	new /obj/item/stack/cable_coil(drop_location(), 1, "red")
 	if(status != LIGHT_BROKEN)
 		break_light_tube(FALSE)
@@ -722,7 +721,7 @@
 	icon_state = "floor"
 	brightness = 4
 	light_angle = 360
-	layer = LOW_OBJ_LAYER
+	layer = ABOVE_OPEN_TURF_LAYER
 	plane = FLOOR_PLANE
 	light_type = /obj/item/light/bulb
 	fitting = "bulb"
@@ -739,4 +738,6 @@
 /obj/machinery/light/floor/transport
 	name = "transport light"
 	break_if_moved = FALSE
+	// has to render above tram things (trams are stupid)
 	layer = BELOW_OPEN_DOOR_LAYER
+	plane = GAME_PLANE

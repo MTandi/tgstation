@@ -123,7 +123,7 @@
 		/obj/effect/spawner/random/entertainment/cigarette_pack,
 		/obj/effect/spawner/random/entertainment/cigar,
 		/obj/effect/spawner/random/entertainment/lighter,
-		/obj/item/clothing/mask/cigarette/pipe,
+		/obj/item/cigarette/pipe,
 	)
 
 /datum/quirk_constant_data/smoker
@@ -162,7 +162,7 @@
 	. = ..()
 	var/mob/living/carbon/human/human_holder = quirk_holder
 	var/obj/item/mask_item = human_holder.get_item_by_slot(ITEM_SLOT_MASK)
-	if(istype(mask_item, /obj/item/clothing/mask/cigarette))
+	if(istype(mask_item, /obj/item/cigarette))
 		var/obj/item/storage/fancy/cigarettes/cigarettes = drug_container_type
 		if(istype(mask_item, initial(cigarettes.spawn_type)))
 			quirk_holder.clear_mood_event("wrong_cigs")
@@ -211,7 +211,7 @@
 	RegisterSignal(quirk_holder, COMSIG_MOB_REAGENT_CHECK, PROC_REF(check_brandy))
 	var/obj/item/reagent_containers/brandy_container = drug_container_type
 	if(isnull(brandy_container))
-		stack_trace("Alcoholic quirk added while the GLOB.alcohol_containers is (somehow) not initialized!")
+		stack_trace("Alcoholic quirk added while the GLOB.possible_alcoholic_addictions is (somehow) not initialized!")
 		brandy_container = new drug_container_type
 		qdel(brandy_container)
 
