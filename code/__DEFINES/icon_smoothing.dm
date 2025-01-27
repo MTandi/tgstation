@@ -138,7 +138,6 @@ DEFINE_BITFIELD(smoothing_junction, list(
 #define SMOOTH_GROUP_BOSS_WALLS S_TURF(58) ///turf/closed/indestructible/riveted/boss
 #define SMOOTH_GROUP_SURVIVAL_TITANIUM_WALLS S_TURF(59) ///turf/closed/wall/mineral/titanium/survival
 #define SMOOTH_GROUP_TURF_OPEN_CLIFF S_TURF(60) ///turf/open/cliff
-
 #define SMOOTH_GROUP_PLATING S_TURF(61) ///turf/open/floor/plating
 
 #define MAX_S_TURF 61 //Always match this value with the one above it.
@@ -208,12 +207,9 @@ DEFINE_BITFIELD(smoothing_junction, list(
 #define SMOOTH_GROUP_SPIDER_WEB_WALL_TOUGH S_OBJ(73) // /obj/structure/spider/stickyweb/sealed/thick
 #define SMOOTH_GROUP_SPIDER_WEB_WALL_MIRROR S_OBJ(74) // /obj/structure/spider/stickyweb/sealed/reflector
 
-<<<<<<< HEAD
-#define SMOOTH_GROUP_GRILLE S_OBJ(75) // /obj/structure/grille
-=======
 #define SMOOTH_GROUP_GRAV_FIELD S_OBJ(69)
 #define SMOOTH_GROUP_GIRDER S_OBJ(75)
->>>>>>> 1655e25290f23647789fcaf7f2ef4090f002605f
+#define SMOOTH_GROUP_GRILLE S_OBJ(76) // /obj/structure/grille
 
 /// Performs the work to set smoothing_groups and canSmoothWith.
 /// An inlined function used in both turf/Initialize and atom/Initialize.
