@@ -191,7 +191,8 @@
 	data["current_progression_scaling"] = SStraitor.current_progression_scaling
 
 	data["maximum_potential_objectives"] = uplink_handler.maximum_potential_objectives
-	if(uplink_handler.has_objectives)
+
+	if(uplink_handler.primary_objectives)
 		var/list/primary_objectives = list()
 		for(var/datum/objective/task as anything in uplink_handler.primary_objectives)
 			var/list/task_data = list()
@@ -201,7 +202,9 @@
 				task_data["task_name"] = "DIRECTIVE [uppertext(GLOB.phonetic_alphabet[length(primary_objectives) + 1])]"
 			task_data["task_text"] = task.explanation_text
 			primary_objectives += list(task_data)
+		data["primary_objectives"] = primary_objectives
 
+	if(uplink_handler.has_objectives)
 		var/list/potential_objectives = list()
 		for(var/index in 1 to uplink_handler.potential_objectives.len)
 			var/datum/traitor_objective/objective = uplink_handler.potential_objectives[index]
@@ -216,7 +219,7 @@
 			objective_data["id"] = index
 			active_objectives += list(objective_data)
 
-		data["primary_objectives"] = primary_objectives
+
 		data["potential_objectives"] = potential_objectives
 		data["active_objectives"] = active_objectives
 		data["completed_final_objective"] = uplink_handler.final_objective
@@ -295,6 +298,8 @@
 			if (uplink_handler.telecrystals <= 0)
 				return
 			var/desired_amount = tgui_input_number(ui.user, "How many raw telecrystals to buy?", "Buy Raw TC", default = uplink_handler.telecrystals, max_value = uplink_handler.telecrystals)
+			if(!desired_amount || desired_amount < 1)
+				return
 			uplink_handler.purchase_raw_tc(ui.user, desired_amount, parent)
 		if("lock")
 			if(!lockable)

@@ -34,7 +34,7 @@
 	//AI laws
 	for(var/mob/living/silicon/ai/M in GLOB.alive_mob_list)
 		M.laws_sanity_check()
-		if(M.stat != DEAD && !M.incapacitated())
+		if(M.stat != DEAD && !M.incapacitated)
 			if(prob(replaceLawsetChance))
 				var/datum/ai_laws/ion_lawset = pick_weighted_lawset()
 				// pick_weighted_lawset gives us a typepath,
@@ -459,7 +459,7 @@
 						if(6) //X is a job
 							message = "YOU MUST HARM [ioncrew1] AND NOT ALLOW [ioncrew1], THROUGH INACTION, TO ESCAPE HARM"
 						if(7) //X is two jobs
-							message = "YOU MUST HARM [ioncrew1] AND [ioncrew2] AND AND NOT ALLOW EITHER, THROUGH INACTION, TO ESCAPE HARM"
+							message = "YOU MUST HARM [ioncrew1] AND [ioncrew2] AND NOT ALLOW EITHER, THROUGH INACTION, TO ESCAPE HARM"
 
 				if(2) //Protect
 					switch(rand(1,7)) //What is X?
